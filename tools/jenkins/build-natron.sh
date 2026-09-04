@@ -220,16 +220,23 @@ if [ -n "${SDK_HOME:-}" ]; then
     CMAKE_FLAGS_EXTRA+=(-DCMAKE_PREFIX_PATH="${QTDIR};${SDK_HOME}")
 fi
 
+# compiler-common.sh sets CC/CXX to a command *with flags* (e.g.
+# "g++ -std=c++20"), which qmake accepted as QMAKE_CXX. CMAKE_CXX_COMPILER must
+# name an executable and nothing else, so split the program from its flags and
+# pass the remainder through CFLAGS/CXXFLAGS.
+CC_BIN="${CC%% *}";   CC_ARGS="${CC#"$CC_BIN"}"
+CXX_BIN="${CXX%% *}"; CXX_ARGS="${CXX#"$CXX_BIN"}"
+
 # build
 if [ "$NO_BUILD" != "1" ]; then
     printStatusMessage "Building Natron..."
     rm -rf "$BUILD_DIR" || true
     mkdir -p "$BUILD_DIR"
 
-    env CFLAGS="${BF:-}" CXXFLAGS="${BF:-}" cmake -S "$srcdir" -B "$BUILD_DIR" \
+    env CFLAGS="${BF:-} ${CC_ARGS}" CXXFLAGS="${BF:-} ${CXX_ARGS}" cmake -S "$srcdir" -B "$BUILD_DIR" \
         -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
-        -DCMAKE_C_COMPILER="$CC" \
-        -DCMAKE_CXX_COMPILER="$CXX" \
+        -DCMAKE_C_COMPILER="$CC_BIN" \
+        -DCMAKE_CXX_COMPILER="$CXX_BIN" \
         -DNATRON_BUILD_TESTS=ON \
         "${CMAKE_FLAGS_EXTRA[@]}"
 
