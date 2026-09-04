@@ -32,10 +32,21 @@ declares the packages resolved by [vcpkg](https://vcpkg.io) in manifest mode,
 and Qt, Python, Shiboken/PySide, Boost, expat and cairo come from the MSYS2
 mingw64 packages and are located by CMake's `find_package`.
 
-On MSYS2, install the formerly bundled libraries from pacman:
+`eigen3` and `glog` come from vcpkg rather than pacman, even on Windows. MSYS2
+ships eigen 5.0.1, which removed `Eigen::MappedSparseMatrix` (used by the
+bundled Ceres 1.12), and a glog that moved `LogMessageVoidify` out of
+`namespace google` (used by libmv). pacman cannot pin either, so all three
+platforms resolve from the same manifest.
+
+Set `VCPKG_ROOT` and build with the mingw triplet:
 
 ```
-pacman -S --needed mingw-w64-x86_64-eigen3 mingw-w64-x86_64-glog mingw-w64-x86_64-gtest
+export VCPKG_ROOT=/path/to/vcpkg
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+  -DVCPKG_TARGET_TRIPLET=x64-mingw-dynamic \
+  -DVCPKG_HOST_TRIPLET=x64-mingw-dynamic
 ```
 
 ### Nodes
@@ -63,7 +74,6 @@ Or in a directory named "Plugins" located in the parent directory where the bina
 Natron builds with CMake. From the Natron directory in an MSYS2 mingw64 shell:
 
 ```
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build --parallel 2
 ```
 

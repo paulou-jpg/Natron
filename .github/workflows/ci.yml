@@ -17,6 +17,9 @@ on:
 
 env:
   OCIO_CONFIG_VERSION: 2.5
+  # Must match "builtin-baseline" in vcpkg.json so every platform resolves
+  # identical dependency versions.
+  VCPKG_BASELINE: 7ff71c68261ecf3b60cdb8772f2e6759ee0a71b1
 
 jobs:
   linux-test:
@@ -117,10 +120,24 @@ jobs:
         run: |
           ${GITHUB_WORKSPACE}/.github/workflows/install_natron_pacman_repo.sh ${GITHUB_WORKSPACE} ${GITHUB_WORKSPACE}/natron_pacman_repo
           pacman -S --needed --noconfirm --overwrite "*" mingw-w64-x86_64-natron-build-deps-qt5
-          # Formerly vendored in libs/; on Windows these come from MSYS2 rather
-          # than vcpkg, which does not target the mingw64 toolchain cleanly.
-          pacman -S --needed --noconfirm --overwrite "*" \
-            mingw-w64-x86_64-eigen3 mingw-w64-x86_64-glog mingw-w64-x86_64-gtest
+
+      # eigen3 and glog come from the vcpkg manifest here, not from pacman.
+      # MSYS2 ships eigen 5.0.1, which removed Eigen::MappedSparseMatrix (used by
+      # Ceres 1.12), and a glog that moved LogMessageVoidify out of namespace
+      # google (used by libmv). pacman has no way to pin either, so Windows
+      # resolves from the same manifest as the other platforms.
+      - name: Pin vcpkg to the manifest baseline
+        shell: bash
+        run: |
+          git -C "$VCPKG_INSTALLATION_ROOT" fetch --depth 1 origin "$VCPKG_BASELINE"
+          git -C "$VCPKG_INSTALLATION_ROOT" checkout --detach FETCH_HEAD
+
+      - name: Cache vcpkg binaries
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-windows-
 
       - name: Download OpenColorIO-Configs
         run: |
@@ -130,9 +147,18 @@ jobs:
 
       - name: Build Windows
         run: |
+          mkdir -p "${GITHUB_WORKSPACE}/vcpkg-cache"
+          export VCPKG_ROOT=$(cygpath -u "${VCPKG_INSTALLATION_ROOT}")
+          export VCPKG_DEFAULT_BINARY_CACHE=$(cygpath -m "${GITHUB_WORKSPACE}/vcpkg-cache")
           mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
-          ninja
+          # The mingw triplets keep vcpkg on the MSYS2 toolchain instead of MSVC.
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-mingw-dynamic \
+            -DVCPKG_HOST_TRIPLET=x64-mingw-dynamic \
+            -DVCPKG_MANIFEST_FEATURES=tests \
+            ../
+          ninja -j2
 
       - name: Run Windows Tests
         id: run-windows-tests
