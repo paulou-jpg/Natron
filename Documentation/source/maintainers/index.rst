@@ -32,6 +32,8 @@ introduced where needed.
     rendering
     openfx-host
     python-bindings
+    platform-python-api
+    platform-project-format
     subsystems
     contributing
     qt6-migration
