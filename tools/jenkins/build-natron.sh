@@ -203,6 +203,18 @@ if [ -n "${NATRON_EXTRA_CMAKE_FLAGS:-}" ]; then
     CMAKE_FLAGS_EXTRA+=(${NATRON_EXTRA_CMAKE_FLAGS})
 fi
 
+# Dependencies resolved by the vcpkg manifest (eigen3, glog, gtest). Optional:
+# when VCPKG_ROOT is unset the build falls back to whatever the SDK provides.
+if [ -n "${VCPKG_ROOT:-}" ]; then
+    CMAKE_FLAGS_EXTRA+=(-DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+                        -DVCPKG_MANIFEST_FEATURES=tests)
+    if [ "$PKGOS" = "Windows" ]; then
+        # Keep vcpkg on the MSYS2 toolchain rather than MSVC.
+        CMAKE_FLAGS_EXTRA+=(-DVCPKG_TARGET_TRIPLET=x64-mingw-dynamic
+                            -DVCPKG_HOST_TRIPLET=x64-mingw-dynamic)
+    fi
+fi
+
 # Where the SDK's Qt, Python, Boost and expat live.
 if [ -n "${SDK_HOME:-}" ]; then
     CMAKE_FLAGS_EXTRA+=(-DCMAKE_PREFIX_PATH="${QTDIR};${SDK_HOME}")

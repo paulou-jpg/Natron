@@ -27,7 +27,17 @@ jobs:
         with:
           msystem: mingw64
           update: true
-          install: git mingw-w64-x86_64-wget unzip diffutils
+          install: git mingw-w64-x86_64-wget unzip diffutils mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+
+      # build-natron.sh configures with this toolchain when VCPKG_ROOT is set,
+      # so the installer resolves eigen3 and glog from the same pinned manifest
+      # as the test builds rather than from pacman.
+      - name: Pin vcpkg to the manifest baseline
+        shell: bash
+        run: |
+          BASELINE=$(python -c "import json;print(json.load(open('vcpkg.json'))['builtin-baseline'])")
+          git -C "$VCPKG_INSTALLATION_ROOT" fetch --depth 1 origin "$BASELINE"
+          git -C "$VCPKG_INSTALLATION_ROOT" checkout --detach FETCH_HEAD
 
       - name: Install Natron pacman repository
         run: |
@@ -41,6 +51,10 @@ jobs:
           mkdir ${NATRON_BUILD_WORKSPACE_UNIX}
 
           cd tools/jenkins
+
+          # build-natron.sh picks this up and configures CMake with the vcpkg
+          # toolchain; without it the installer would take eigen3 from pacman.
+          export VCPKG_ROOT=$(cygpath -u "${VCPKG_INSTALLATION_ROOT}")
 
           WORKSPACE=${NATRON_BUILD_WORKSPACE_UNIX} BUILD_NAME=natron BUILD_NUMBER=1 BITS=64 NATRON_LICENSE=GPL GIT_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git GIT_URL_IS_NATRON=1 SNAPSHOT_BRANCH=${GITHUB_REF_NAME} QT_VERSION_MAJOR=5 DISABLE_BREAKPAD=1 NOUPDATE=1 MKJOBS=$(nproc) MINIMIZE_DISK_USAGE=1 UNIT_TESTS=true ./launchBuildMain.sh
 
@@ -130,7 +144,17 @@ jobs:
         with:
           msystem: mingw64
           update: true
-          install: git mingw-w64-x86_64-wget unzip
+          install: git mingw-w64-x86_64-wget unzip mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+
+      # build-natron.sh configures with this toolchain when VCPKG_ROOT is set,
+      # so the installer resolves eigen3 and glog from the same pinned manifest
+      # as the test builds rather than from pacman.
+      - name: Pin vcpkg to the manifest baseline
+        shell: bash
+        run: |
+          BASELINE=$(python -c "import json;print(json.load(open('vcpkg.json'))['builtin-baseline'])")
+          git -C "$VCPKG_INSTALLATION_ROOT" fetch --depth 1 origin "$BASELINE"
+          git -C "$VCPKG_INSTALLATION_ROOT" checkout --detach FETCH_HEAD
 
       - name: Install Natron pacman repository
         run: |
@@ -144,6 +168,10 @@ jobs:
           mkdir ${NATRON_BUILD_WORKSPACE_UNIX}
 
           cd tools/jenkins
+
+          # build-natron.sh picks this up and configures CMake with the vcpkg
+          # toolchain; without it the installer would take eigen3 from pacman.
+          export VCPKG_ROOT=$(cygpath -u "${VCPKG_INSTALLATION_ROOT}")
 
           WORKSPACE=${NATRON_BUILD_WORKSPACE_UNIX} BUILD_NAME=natron BUILD_NUMBER=1 BITS=64 NATRON_LICENSE=GPL GIT_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git GIT_URL_IS_NATRON=1 SNAPSHOT_BRANCH=${GITHUB_REF_NAME} QT_VERSION_MAJOR=5 NOUPDATE=1 MKJOBS=$(nproc) MINIMIZE_DISK_USAGE=1 ./launchBuildMain.sh
 
