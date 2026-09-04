@@ -50,7 +50,6 @@ if [ "$PKGOS" = "Linux" ]; then
     export C_INCLUDE_PATH="${SDK_HOME}/gcc/include:${SDK_HOME}/include:${SDK_HOME}/qt${QT_VERSION_MAJOR}/include"
     export CPLUS_INCLUDE_PATH="${C_INCLUDE_PATH}"
 fi
-QMAKE="$QTDIR/bin/qmake"
 
 cd "$TMP_PATH"
 
@@ -121,161 +120,108 @@ fi
 #Update GitVersion to have the correct hash
 $GSED "s#__BRANCH__#${NATRON_GIT_BRANCH}#;s#__COMMIT__#${NATRON_GIT_COMMIT}#;s#__IO_COMMIT__#${IO_GIT_HASH:-}#;s#__MISC_COMMIT__#${MISC_GIT_HASH:-}#;s#__ARENA_COMMIT__#${ARENA_GIT_HASH:-}#;s#__GMIC_COMMIT__#${GMIC_GIT_HASH:-}#" "$INC_PATH/natron/GitVersion.h" > Global/GitVersion.h
 
-# add config based on python version
-if [ "$NATRON_VERSION_MAJOR" -ge "3" ]; then
-    cat "$INC_PATH/natron/${PKGOS}_natron3.pri" > config.pri
-else
-    cat "$INC_PATH/natron/${PKGOS}.pri" > config.pri
+# CMake build.
+#
+# The shiboken/pyside bindings that this script used to pre-generate by hand are
+# produced by the CMake build itself, so that step is gone. The per-platform
+# config.pri files are gone too: CMake discovers Qt, Shiboken, PySide, Boost and
+# expat with find_package, and the SDK is pointed at with CMAKE_PREFIX_PATH.
+
+# CWD is the Natron source tree (see "cd Natron" above). The CMake build is
+# always out-of-source, unlike the qmake build it replaces.
+srcdir="."
+BUILD_DIR="${TMP_PATH}/Natron/build"
+
+CMAKE_FLAGS_EXTRA=()
+
+# build type
+case "$COMPILE_TYPE" in
+    debug)          CMAKE_BUILD_TYPE=Debug ;;
+    release)        CMAKE_BUILD_TYPE=Release ;;
+    relwithdebinfo) CMAKE_BUILD_TYPE=RelWithDebInfo ;;
+    *)              CMAKE_BUILD_TYPE=RelWithDebInfo ;;
+esac
+
+# Qt version
+if [ "${QT_VERSION_MAJOR:-5}" = "6" ]; then
+    CMAKE_FLAGS_EXTRA+=(-DNATRON_QT6=ON)
 fi
 
-echo "*** config.pri:"
-echo "========================================================================"
-cat config.pri
-echo "========================================================================"
-
-# Generate pyside bindings (cmake can generate these, qmake can't)
-if [ "$QT_VERSION_MAJOR" = 5 ]; then
-    UNIX_PYTHON_HOME="${PYTHON_HOME}"
-    UNIX_SDK_HOME="${SDK_HOME}"
-    case "$system" in
-    Linux)
-
+# version / release status
+case "$NATRON_BUILD_CONFIG" in
+    SNAPSHOT)
+        CMAKE_FLAGS_EXTRA+=(-DNATRON_DEV_STATUS=SNAPSHOT)
         ;;
-    Msys|MINGW64_NT-*|MINGW32_NT-*)
-        UNIX_PYTHON_HOME="$(cygpath -u "${PYTHON_HOME}")"
-        UNIX_SDK_HOME="$(cygpath -u "${SDK_HOME}")"
+    ALPHA|BETA|RC)
+        if [ -z "${NATRON_BUILD_NUMBER:-}" ]; then
+            echo "You must supply a NATRON_BUILD_NUMBER when NATRON_BUILD_CONFIG=$NATRON_BUILD_CONFIG"
+            exit 1
+        fi
+        CMAKE_FLAGS_EXTRA+=(-DNATRON_DEV_STATUS="$NATRON_BUILD_CONFIG"
+                            -DNATRON_BUILD_NUMBER="$NATRON_BUILD_NUMBER")
         ;;
-    Darwin)
-        # Check for a missing link in the MacPorts package
-        [ ! -f ${PYTHON_HOME}/lib/python${PYVER}/site-packages/shiboken2_generator/shiboken2-${PYVER} ] && (echo "Error: broken MacPort install"; echo "Please execute:"; echo "sudo ln -s shiboken2 ${PYTHON_HOME}/lib/python${PYVER}/site-packages/shiboken2_generator/shiboken2-${PYVER}"; echo "and relaunch."; exit 1)
+    STABLE)
+        CMAKE_FLAGS_EXTRA+=(-DNATRON_DEV_STATUS=STABLE)
         ;;
-    *)
+    CUSTOM)
+        if [ -z "${NATRON_CUSTOM_BUILD_USER_NAME:-}" ]; then
+            echo "You must supply a NATRON_CUSTOM_BUILD_USER_NAME when NATRON_BUILD_CONFIG=CUSTOM"
+            exit 1
+        fi
+        CMAKE_FLAGS_EXTRA+=(-DNATRON_DEV_STATUS=CUSTOM
+                            -DBUILD_USER_NAME="$NATRON_CUSTOM_BUILD_USER_NAME")
         ;;
-    esac
-
-    rm Engine/Qt${QT_VERSION_MAJOR}/NatronEngine/* Gui/Qt${QT_VERSION_MAJOR}/NatronGui/* || true
-    SHIBOKEN_INCLUDE_PATHS="-I. -I./Engine -I./Global -Ilibs/OpenFX/include -I${UNIX_SDK_HOME}/include -I${QTDIR}/include -I${QTDIR}/include/QtCore -I${UNIX_PYTHON_HOME}/include/python${PYVER} -I${UNIX_PYTHON_HOME}/include/PySide2 -I${UNIX_PYTHON_HOME}/include/PySide2/QtCore -I${UNIX_PYTHON_HOME}/include/PySide2/QtGui -I${UNIX_PYTHON_HOME}/lib/python${PYVER}/site-packages/PySide2/include -I${UNIX_PYTHON_HOME}/lib/python${PYVER}/site-packages/PySide2/include/QtCore -I${UNIX_PYTHON_HOME}/lib/python${PYVER}/site-packages/PySide2/include/QtGui"
-    SHIBOKEN_TYPESYSTEM_PATHS="-T${UNIX_PYTHON_HOME}/share/PySide2/typesystems -T${UNIX_PYTHON_HOME}/lib/python${PYVER}/site-packages/PySide2/typesystems"
-    shiboken2 -std=c++17 --avoid-protected-hack --enable-pyside-extensions ${SHIBOKEN_INCLUDE_PATHS} ${SHIBOKEN_TYPESYSTEM_PATHS} --output-directory=Engine/Qt${QT_VERSION_MAJOR} Engine/Pyside2_Engine_Python.h  Engine/typesystem_engine.xml
-
-    shiboken2 -std=c++17 --avoid-protected-hack --enable-pyside-extensions ${SHIBOKEN_INCLUDE_PATHS} -I${QTDIR}/include/QtWidgets -I${QTDIR}/include/QtGui -I${QTDIR}/include/QtCore  ${SHIBOKEN_TYPESYSTEM_PATHS} -T./Engine -T./Shiboken --output-directory=Gui/Qt${QT_VERSION_MAJOR} Gui/PySide2_Gui_Python.h  Gui/typesystem_natronGui.xml
-
-    python3 tools/utils/sourceCleanup.py Engine/typesystem_engine.xml Engine/Qt${QT_VERSION_MAJOR}
-    python3 tools/utils/sourceCleanup.py Gui/typesystem_natronGui.xml Gui/Qt${QT_VERSION_MAJOR}
-
-fi
-
-# setup build dir
-if [ "${QMAKE_BUILD_SUBDIR:-}" = "1" ]; then
-    # disabled by default, because it does not always work right, eg for Info.plist creation on macOS
-    # Since we delete the sources after the build, we really don't care
-    rm -rf build || true
-    mkdir build
-    cd build
-    srcdir=..
-else
-    srcdir=.
-fi
-
-
-# Get extra qmake flags passed from command line
-QMAKE_FLAGS_EXTRA=($NATRON_EXTRA_QMAKE_FLAGS)
-
-# Do not make the build silent so we can check that all flags are correctly passed at compile time. Only useful to debug the build.
-QMAKE_FLAGS_EXTRA+=(CONFIG+=silent)
-
-
-# setup version
-if [ "$NATRON_BUILD_CONFIG" = "SNAPSHOT" ]; then
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=snapshot)
-elif [ "$NATRON_BUILD_CONFIG" = "ALPHA" ]; then
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=alpha  BUILD_NUMBER="$NATRON_BUILD_NUMBER")
-    if [ -z "${BUILD_NUMBER:-}" ]; then
-        echo "You must supply a BUILD_NUMBER when NATRON_BUILD_CONFIG=ALPHA"
-        exit 1
-    fi
-elif [ "$NATRON_BUILD_CONFIG" = "BETA" ]; then
-    if [ -z "${NATRON_BUILD_NUMBER:-}" ]; then
-        echo "You must supply a NATRON_BUILD_NUMBER when NATRON_BUILD_CONFIG=BETA"
-        exit 1
-    fi
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=beta  BUILD_NUMBER="$NATRON_BUILD_NUMBER")
-elif [ "$NATRON_BUILD_CONFIG" = "RC" ]; then
-    if [ -z "${NATRON_BUILD_NUMBER:-}" ]; then
-        echo "You must supply a NATRON_BUILD_NUMBER when NATRON_BUILD_CONFIG=RC"
-        exit 1
-    fi
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=RC BUILD_NUMBER="$NATRON_BUILD_NUMBER")
-elif [ "$NATRON_BUILD_CONFIG" = "STABLE" ]; then
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=stable)
-elif [ "$NATRON_BUILD_CONFIG" = "CUSTOM" ]; then
-    if [ -z "${NATRON_CUSTOM_BUILD_USER_NAME:-}" ]; then
-        echo "You must supply a NATRON_CUSTOM_BUILD_USER_NAME when NATRON_BUILD_CONFIG=CUSTOM"
-        exit 1
-    fi
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=stable BUILD_USER_NAME="$NATRON_CUSTOM_BUILD_USER_NAME")
-fi
-
-if [ "$PYV" = "3" ]; then
-    PYO="PYTHON_CONFIG=python${PYVER}${PYTHON_ABIFLAGS}-config"
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=python3)
-fi
+esac
 
 # use breakpad?
 if [ "${DISABLE_BREAKPAD:-}" = "1" ]; then
-    QMAKE_FLAGS_EXTRA+=(CONFIG-=enable-breakpad)
+    CMAKE_FLAGS_EXTRA+=(-DNATRON_BREAKPAD=OFF)
 else
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=enable-breakpad)
+    CMAKE_FLAGS_EXTRA+=(-DNATRON_BREAKPAD=ON)
 fi
 
 if [ "$COMPILER" = "clang" ]; then
-    QMAKE_FLAGS_EXTRA+=(CONFIG-=openmp)
+    CMAKE_FLAGS_EXTRA+=(-DNATRON_OPENMP=OFF)
 else
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=openmp)
-fi
-
-if [ -d "$CUSTOM_BUILDS_PATH/osmesa" ]; then
-    LLVM_PATH="$CUSTOM_BUILDS_PATH/llvm"
-    OSMESA_PATH="$CUSTOM_BUILDS_PATH/osmesa"
-elif [ -d "/opt/osmesa" ]; then
-    LLVM_PATH="/opt/llvm"
-    OSMESA_PATH="/opt/osmesa"
-fi
-
-QMAKE_FLAGS_EXTRA+=(CONFIG+=enable-osmesa OSMESA_PATH="$OSMESA_PATH" LLVM_PATH="$LLVM_PATH" CONFIG+=enable-cairo)
-
-
-# mac compiler
-if [ "$PKGOS" = "OSX" ]; then
-    if [ "$COMPILER" = "clang" ] || [ "$COMPILER" = "clang-omp" ]; then
-        SPEC=macx-clang
-    else
-        SPEC=macx-g++
-    fi
-    QBITS=$(echo "${BITS}" | awk '{print tolower($0)}')
-    QMAKE_FLAGS_EXTRA+=(-spec "$SPEC" CONFIG+="${QBITS}" QMAKE_MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET")
-elif [ "$PKGOS" = "Windows" ]; then
-    QMAKE_FLAGS_EXTRA+=(-spec win32-g++)
+    CMAKE_FLAGS_EXTRA+=(-DNATRON_OPENMP=ON)
 fi
 
 if [ "$COMPILE_TYPE" != "debug" ]; then
     # Let us benefit from maximum optimization for release builds,
     # including non-conformant IEEE floating-point computation.
-    QMAKE_FLAGS_EXTRA+=(CONFIG+=noassertions CONFIG+=fast)
+    CMAKE_FLAGS_EXTRA+=(-DNATRON_NO_ASSERTIONS=ON)
+fi
+
+# mac deployment target
+if [ "$PKGOS" = "OSX" ]; then
+    CMAKE_FLAGS_EXTRA+=(-DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET")
+fi
+
+# Extra CMake flags passed from the command line.
+if [ -n "${NATRON_EXTRA_CMAKE_FLAGS:-}" ]; then
+    # shellcheck disable=SC2206
+    CMAKE_FLAGS_EXTRA+=(${NATRON_EXTRA_CMAKE_FLAGS})
+fi
+
+# Where the SDK's Qt, Python, Boost and expat live.
+if [ -n "${SDK_HOME:-}" ]; then
+    CMAKE_FLAGS_EXTRA+=(-DCMAKE_PREFIX_PATH="${QTDIR};${SDK_HOME}")
 fi
 
 # build
 if [ "$NO_BUILD" != "1" ]; then
     printStatusMessage "Building Natron..."
-    echo "env CFLAGS=\"${BF:-}\" CXXFLAGS=\"${BF:-}\" \"$QMAKE\" -r CONFIG+=\"$COMPILE_TYPE\" QMAKE_CC=\"$CC\" QMAKE_CXX=\"$CXX\" QMAKE_LINK=\"$CXX\" QMAKE_OBJECTIVE_CC=\"$OBJECTIVE_CC\" QMAKE_OBJECTIVE_CXX=\"$OBJECTIVE_CXX\" ${QMAKE_FLAGS_EXTRA[*]} ${PYO:-} ../Project.pro"
-    env CFLAGS="${BF:-}" CXXFLAGS="${BF:-}" "$QMAKE" -r CONFIG+="$COMPILE_TYPE" QMAKE_CC="$CC" QMAKE_CXX="$CXX" QMAKE_LINK="$CXX" QMAKE_OBJECTIVE_CC="$OBJECTIVE_CC" QMAKE_OBJECTIVE_CXX="$OBJECTIVE_CXX" "${QMAKE_FLAGS_EXTRA[@]}" ${PYO:-} "$srcdir"/Project.pro
-    make -j"${MKJOBS}"
-    make -j"${MKJOBS}" -C Tests
-    if [ "$PKGOS" = "OSX" ]; then
-    # the app bundle is wrong when building in parallel
-        make -C App clean
-        make -C App
-    fi
+    rm -rf "$BUILD_DIR" || true
+    mkdir -p "$BUILD_DIR"
+
+    env CFLAGS="${BF:-}" CXXFLAGS="${BF:-}" cmake -S "$srcdir" -B "$BUILD_DIR" \
+        -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
+        -DCMAKE_C_COMPILER="$CC" \
+        -DCMAKE_CXX_COMPILER="$CXX" \
+        -DNATRON_BUILD_TESTS=ON \
+        "${CMAKE_FLAGS_EXTRA[@]}"
+
+    cmake --build "$BUILD_DIR" --parallel "${MKJOBS}"
 fi
 
 if [ ! -d "$TMP_BINARIES_PATH/bin" ]; then
@@ -298,17 +244,15 @@ RENDERER_BIN="NatronRenderer"
 CRASHGUI="NatronCrashReporter"
 CRASHCLI="NatronRendererCrashReporter"
 if [ "$PKGOS" = "Windows" ]; then
-    WIN_BIN_TYPE=release
-    if [ "${COMPILE_TYPE}" = "debug" ]; then
-       WIN_BIN_TYPE=debug
-    fi
-    NATRON_CONVERTER="$WIN_BIN_TYPE/${NATRON_CONVERTER}.exe"
-    NATRON_PYTHON_BIN="$WIN_BIN_TYPE/${NATRON_PYTHON_BIN}.exe"
-    NATRON_TEST="$WIN_BIN_TYPE/${NATRON_TEST}.exe"
-    NATRON_BIN="$WIN_BIN_TYPE/${NATRON_BIN}.exe"
-    RENDERER_BIN="$WIN_BIN_TYPE/${RENDERER_BIN}.exe"
-    CRASHGUI="$WIN_BIN_TYPE/${CRASHGUI}.exe"
-    CRASHCLI="$WIN_BIN_TYPE/${CRASHCLI}.exe"
+    # The CMake/Ninja build is single-config, so binaries sit directly in their
+    # target directory rather than under a release/ or debug/ subdirectory.
+    NATRON_CONVERTER="${NATRON_CONVERTER}.exe"
+    NATRON_PYTHON_BIN="${NATRON_PYTHON_BIN}.exe"
+    NATRON_TEST="${NATRON_TEST}.exe"
+    NATRON_BIN="${NATRON_BIN}.exe"
+    RENDERER_BIN="${RENDERER_BIN}.exe"
+    CRASHGUI="${CRASHGUI}.exe"
+    CRASHCLI="${CRASHCLI}.exe"
 fi
 
 
@@ -327,14 +271,8 @@ if [ "${MINIMIZE_DISK_USAGE:-}" = "1" ]; then
     DIRS_TO_CLEAN="Engine Gui Tests libs/openMVG libs/ceres libs/libmv"
 
     for dir in ${DIRS_TO_CLEAN}; do
-        if [ "$PKGOS" = "Windows" ]; then
-            rm -vf ${dir}/${WIN_BIN_TYPE}/{*.o,*.a}
-        else
-            rm -vf ${dir}/{*.o,*.a}
-        fi
-
-        if [ -d ${dir}/pch ]; then
-            rm -rv ${dir}/pch
+        if [ -d "${BUILD_DIR}/${dir}" ]; then
+            find "${BUILD_DIR}/${dir}" -type f \( -name '*.o' -o -name '*.a' \) -delete
         fi
     done
 
@@ -343,31 +281,31 @@ if [ "${MINIMIZE_DISK_USAGE:-}" = "1" ]; then
 fi
 
 
-cp Tests/$NATRON_TEST "$TMP_BINARIES_PATH/bin/"
+cp "$BUILD_DIR"/Tests/$NATRON_TEST "$TMP_BINARIES_PATH/bin/"
 TEST_BINARY_TO_RUN="$TMP_BINARIES_PATH/bin/Tests"
 if [ "$PKGOS" = "Windows" ]; then
     TEST_BINARY_TO_RUN="${TEST_BINARY_TO_RUN}.exe"
 fi
 
-${CP_OR_MV} App${MAC_APP_PATH:-}/$NATRON_BIN "$TMP_BINARIES_PATH/bin/"
+${CP_OR_MV} "$BUILD_DIR"/App${MAC_APP_PATH:-}/$NATRON_BIN "$TMP_BINARIES_PATH/bin/"
 
 # copy Info.plist and PkgInfo
 if [ "$PKGOS" = "OSX" ]; then
-    ls -lR App/Natron.app
+    ls -lR "$BUILD_DIR"/App/Natron.app
     # Note: Info.plist generation only works if compiling in the sources,
     # NOT in a "build" subdir (at least in qt4).
-    cp "App${MAC_INFOPLIST}" "$TMP_BINARIES_PATH/bin/"
-    cp "App${MAC_PKGINFO}" "$TMP_BINARIES_PATH/bin/"
+    cp "$BUILD_DIR/App${MAC_INFOPLIST}" "$TMP_BINARIES_PATH/bin/"
+    cp "$BUILD_DIR/App${MAC_PKGINFO}" "$TMP_BINARIES_PATH/bin/"
 fi
 
-${CP_OR_MV} Renderer/$RENDERER_BIN "$TMP_BINARIES_PATH/bin/"
+${CP_OR_MV} "$BUILD_DIR"/Renderer/$RENDERER_BIN "$TMP_BINARIES_PATH/bin/"
 
-if [ -f ProjectConverter/$NATRON_CONVERTER ]; then
-    cp ProjectConverter/$NATRON_CONVERTER "${TMP_BINARIES_PATH}/bin/"
+if [ -f "$BUILD_DIR"/ProjectConverter/$NATRON_CONVERTER ]; then
+    cp "$BUILD_DIR"/ProjectConverter/$NATRON_CONVERTER "${TMP_BINARIES_PATH}/bin/"
 fi
 
-if [ -f PythonBin/$NATRON_PYTHON_BIN ]; then
-    ${CP_OR_MV} PythonBin/$NATRON_PYTHON_BIN "${TMP_BINARIES_PATH}/bin/"
+if [ -f "$BUILD_DIR"/PythonBin/$NATRON_PYTHON_BIN ]; then
+    ${CP_OR_MV} "$BUILD_DIR"/PythonBin/$NATRON_PYTHON_BIN "${TMP_BINARIES_PATH}/bin/"
 fi
 
 mkdir -p "$TMP_BINARIES_PATH/docs/natron" || true
@@ -375,8 +313,8 @@ cp "$srcdir"/LICENSE.txt "$TMP_BINARIES_PATH/docs/natron/"
 
 # install crashapp(s)
 if [ "${DISABLE_BREAKPAD:-}" != "1" ]; then
-    ${CP_OR_MV} CrashReporter${MAC_CRASH_PATH:-}/$CRASHGUI "$TMP_BINARIES_PATH/bin/"
-    ${CP_OR_MV} CrashReporterCLI/$CRASHCLI "$TMP_BINARIES_PATH/bin/"
+    ${CP_OR_MV} "$BUILD_DIR"/CrashReporter${MAC_CRASH_PATH:-}/$CRASHGUI "$TMP_BINARIES_PATH/bin/"
+    ${CP_OR_MV} "$BUILD_DIR"/CrashReporterCLI/$CRASHCLI "$TMP_BINARIES_PATH/bin/"
 fi
 
 RES_DIR="$TMP_BINARIES_PATH/Resources"

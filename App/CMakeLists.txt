@@ -23,17 +23,41 @@ if(WIN32)
 endif()
 add_executable(Natron ${Natron_SOURCES})
 if(APPLE)
+    # NatronInfo.plist.cmake.in mirrors the qmake template (NatronInfo.plist.in).
+    # It carries the .ntp / .nps / .nl document-type associations and the
+    # fr.inria bundle identifier, none of which CMake's default plist provides.
+    set(MACOSX_BUNDLE_EXECUTABLE_NAME Natron)
+    set(MACOSX_BUNDLE_ICON_FILE natronIcon.icns)
+    set(MACOSX_BUNDLE_TYPEINFO Ntrn)
+
     set_target_properties(Natron PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}"
         MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Copyright (c) 2023 The Natron Developers"
-        MACOSX_BUNDLE_ICON_FILE Icon.icns
-        MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
+        MACOSX_BUNDLE_ICON_FILE "${MACOSX_BUNDLE_ICON_FILE}"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "fr.inria.Natron"
         MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
         MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2023 The Natron Developers"
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/NatronInfo.plist.cmake.in"
     )
+
+    # qmake's ICON= copies the icon into Resources/; CMake does not, and
+    # CFBundleIconFile would otherwise name a file that is not in the bundle.
+    set(NATRON_BUNDLE_ICONS
+        ../Gui/Resources/Images/natronIcon.icns
+        ../Gui/Resources/Images/natronProjectIcon_osx.icns
+    )
+    target_sources(Natron PRIVATE ${NATRON_BUNDLE_ICONS})
+    set_source_files_properties(${NATRON_BUNDLE_ICONS} PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources)
+
+    # qmake emits PkgInfo from QMAKE_PKGINFO_TYPEINFO; CMake does not.
+    add_custom_command(TARGET Natron POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo_append "APPL${MACOSX_BUNDLE_TYPEINFO}"
+                > "$<TARGET_BUNDLE_DIR:Natron>/Contents/PkgInfo"
+        VERBATIM)
 endif()
 target_link_libraries(Natron
     PRIVATE

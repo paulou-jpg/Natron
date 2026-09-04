@@ -88,6 +88,11 @@ target_link_libraries(NatronEngine
         tess
 )
 
+if(NATRON_BREAKPAD)
+    # PUBLIC: AppManagerPrivate.h exposes breakpad's ExceptionHandler to Gui/App.
+    target_link_libraries(NatronEngine PUBLIC BreakpadClient)
+endif()
+
 if(WIN32)
     #System library is required on windows to map network share names from drive letters
     target_link_libraries(NatronEngine PRIVATE mpr)
@@ -107,7 +112,6 @@ target_include_directories(NatronEngine
 target_compile_definitions(NatronEngine
     PRIVATE
         NATRON_CUSTOM_BUILD_USER_TOKEN="${BUILD_USER_NAME}"
-        NATRON_BUILD_NUMBER=0
         QT_NO_KEYWORDS
         ${XDG_DEFS}
 )

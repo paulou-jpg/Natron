@@ -98,8 +98,8 @@ OPENFX_OPENCV_GIT_COMMIT=""
 # Either [relwithdebinfo, release, debug]
 COMPILE_TYPE=""
 
-# Extra qmake flags
-NATRON_EXTRA_QMAKE_FLAGS=""
+# Extra CMake flags
+NATRON_EXTRA_CMAKE_FLAGS=""
 
 # Extra Python modules install script
 EXTRA_PYTHON_MODULES_SCRIPT=""
