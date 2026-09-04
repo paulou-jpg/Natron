@@ -66,15 +66,15 @@ The tools for diagnosing a Natron bug are spread across the code base; this is
 the consolidated list (several are referenced from the P0 leads in
 :ref:`maint-issue-triage`):
 
-- **Debug build.** Build with ``CMAKE_BUILD_TYPE=Debug`` (or qmake
-  ``CONFIG+=debug``). This defines ``DEBUG`` and enables **floating-point
+- **Debug build.** Build with ``CMAKE_BUILD_TYPE=Debug`` (or ``cmake --preset
+  debug``). This defines ``DEBUG`` and enables **floating-point
   exception trapping** at startup (``Global/FloatingPointExceptions.h``), so a
   stray ``NaN`` or division by zero aborts at the source instead of silently
   polluting the image pipeline.
-- **AddressSanitizer.** The qmake build supports ``CONFIG+=addresssanitizer``
-  (see the notes at the bottom of ``Project.pro``) — the fastest way into
-  use-after-free and destruction-order bugs such as the teardown crashes
-  (#795/#1029/#1057).
+- **AddressSanitizer.** Configure with
+  ``-DCMAKE_CXX_FLAGS=-fsanitize=address -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address``
+  — the fastest way into use-after-free and destruction-order bugs such as the
+  teardown crashes (#795/#1029/#1057).
 - **Thread sanitizer / stuck-thread backtraces.** For deadlocks and stalls
   (#248), run under a thread sanitizer or attach a debugger and dump all thread
   backtraces; the suspects are the scheduler condition variables, cache-entry

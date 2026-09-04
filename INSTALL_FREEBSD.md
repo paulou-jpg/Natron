@@ -20,57 +20,29 @@ Go under Natron and type
 git submodule update -i --recursive
 ```
 
-### Add the config.pri file
-
-You might need to define the locations of some of the required libraries.
-This is done by creating a `.pri` file next to the `Project.pro` that will tell the `.pro` where to find those libraries.
-The only library to put in the `config.pri` file on unix systems is boost.
-For all other libraries are found with PKGConfig.
-
-Then you can create the `config.pri` file next to the `Project.pro` file just in case you need to pass more configurations.
-You can fill it with the following proposed code to point to the libraries.
-Of course you need to provide valid paths that are valid on your system.
-
-`INCLUDEPATH` is the path to the include files
-
-`LIBS` is the path to the libs
-
-The following `config.pri` adds `boost_serialization` to the libraries, `cairo`, `expat` and `fontconfig` to pkgconfig and removes static `cairo`.
-
-```pri
-boost: LIBS += -lboost_serialization
-PKGCONFIG += expat
-PKGCONFIG += fontconfig
-cairo {
-        PKGCONFIG += cairo
-        LIBS -=  $$system(pkg-config --variable=libdir cairo)/libcairo.a
-}
-```
-
-###Download OpenColorIO-Configs
-
-In the past, OCIO configs were a submodule, though due to the size of the repository, we have chosen instead
-to make a tarball release and let you download it [here](https://github.com/NatronGitHub/OpenColorIO-Configs/archive/Natron-v2.4.tar.gz).
-Place it at the root of Natron repository.
-
 ### Build
 
-The `<srcPath>` must be absolute and `<buildPath>` must not be a subdir of `<srcPath>`
+Natron builds with CMake. Dependency locations no longer need to be described by
+hand: packages declared in `vcpkg.json` are resolved by
+[vcpkg](https://vcpkg.io) in manifest mode, and Qt, Python, Shiboken/PySide,
+Boost, expat and cairo are located by `find_package`.
 
 ```
-mkdir <buildPath>
-cd <buildfolder>
-qmake -r CONFIG+=disable-breakpad <srcPath>/Project.pro
-make
+export VCPKG_ROOT=/path/to/vcpkg
+cmake -S <srcPath> -B <buildPath> -G Ninja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake --build <buildPath> --parallel 2
 ```
 
-If you want to build in DEBUG mode change the qmake call to this line:
+The build is always out-of-source, so `<buildPath>` must not be inside
+`<srcPath>`.
 
-```
-qmake -r CONFIG+=debug CONFIG+=disable-breakpad <srcPath>/Project.pro
-```
-
-Some debug options are available for developers of Natron and you can see them in the `global.pri` file. To enable an option just add `CONFIG+=<option>` in the qmake call.
+For a debug build, use `-DCMAKE_BUILD_TYPE=Debug`. Other useful options are
+`-DNATRON_QT6=ON`, `-DNATRON_BUILD_TESTS=OFF`, `-DNATRON_OPENMP=ON` and
+`-DNATRON_NO_ASSERTIONS=ON`; see
+`Documentation/source/maintainers/building.rst` for the full list. The crash
+reporter (`-DNATRON_BREAKPAD=ON`) is off by default.
 
 ### Nodes
 

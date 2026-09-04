@@ -37,9 +37,9 @@ libraries; **each layer may depend only on the layers below it.**
    * - Bundled libraries
      - ``libs/``
      - Third-party code built from source: ``ceres`` / ``openMVG`` / ``libmv``
-       (tracker), ``Eigen``, ``hoedown``, ``libtess``, ``gflags`` / ``glog``, …
-       (external dependencies such as Qt, Boost, cairo, OpenColorIO and
-       OpenImageIO are *not* here — see :ref:`maint-building`).
+       (tracker), ``hoedown``, ``libtess``, … (dependencies resolved by vcpkg
+       or the platform — Eigen, glog, Qt, Boost, cairo, OpenColorIO,
+       OpenImageIO — are *not* here; see :ref:`maint-building`).
 
 The golden rule is that **dependencies only point downward**. ``Gui`` knows
 about ``Engine``; ``Engine`` must never include a ``Gui`` header. This is what

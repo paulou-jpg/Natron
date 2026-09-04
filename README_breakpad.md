@@ -1,15 +1,15 @@
 Breakpad is an open source crash reporting system.
 
-The breakpad-specific parts in the Natron source code are enabled by adding CONFIG+=enable-breakpad to the qmake options.
+The breakpad-specific parts in the Natron source code are enabled by configuring with `-DNATRON_BREAKPAD=ON`.
 
 It consists in:
 
-- `breakpadpro.pri`: breakpad-specific additions to Project.pro)
-- `breakpadclient.pri`: included by global.pri
-- `BreakpadClient`: the breakpad client library used by `CrashReporter` and `CrashReporterCLI`
+- `BreakpadClient`: the breakpad client library used by `CrashReporter` and `CrashReporterCLI`. Its `CMakeLists.txt` also defines `NATRON_USE_BREAKPAD` for everything that links it
 - `CrashReporter`: the crash reporter executable (GUI version, monitors crashes by `Natron`)
 - `CrashReporterCLI`: the crash reporter executable (command-line version, monitors crashes by `NatronRenderer`)
-- `libs/google-breakpad`: a submodule that points to https://github.com/NatronGitHub/google-breakpad which is a fork of https://github.com/google/breakpad 
+- `libs/google-breakpad`: a submodule that points to https://github.com/NatronGitHub/google-breakpad which is a fork of https://github.com/google/breakpad
+
+Note that the bundled google-breakpad predates glibc 2.26's rename of `struct ucontext` to `ucontext_t`, so the Linux client does not compile against a modern glibc. This is a property of the submodule, not of the build system.
 
 
 There are several issues with breakpad, see:

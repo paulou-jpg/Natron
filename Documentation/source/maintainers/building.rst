@@ -3,32 +3,39 @@
 Building Natron from Source
 ===========================
 
-Natron has **two parallel build systems**. Both are checked in and both are
-kept working; which one you use depends on your platform and taste.
+Natron builds with **CMake**. The entry point is ``CMakeLists.txt`` at the
+repository root, with one ``CMakeLists.txt`` per module, and ``CMakePresets.json``
+provides ready-made ``debug``, ``release`` and ``release-qt6`` configurations.
+CMake ≥ 3.16 is required (≥ 3.21 to use the presets).
 
-- **qmake** — the traditional build. The entry point is ``Project.pro`` at the
-  repository root, which is a ``TEMPLATE = subdirs`` project pulling in every
-  module and bundled library. Shared configuration lives in ``global.pri`` and
-  ``libs.pri``; platform dependency locations are in ``config-macports.pri`` and
-  ``config-homebrew.pri``.
+Third-party dependencies are declared in ``vcpkg.json`` and resolved by
+`vcpkg <https://vcpkg.io>`_ in manifest mode; set ``VCPKG_ROOT`` and configure
+with a preset::
 
-- **CMake** — a newer, increasingly preferred build. The entry point is
-  ``CMakeLists.txt`` at the root, with one ``CMakeLists.txt`` per module. It
-  requires CMake ≥ 3.16.
+    cmake --preset release
+    cmake --build --preset release
 
 .. note::
 
-   **C++17 is required for every build**, not just the CMake one:
-   ``Global/Macros.h`` fails compilation with ``#error "Natron 2.6+ requires
-   C++17"`` if the standard is older. Configure your toolchain accordingly
-   regardless of which build system you use.
+   The qmake build has been removed. ``Project.pro``, ``global.pri``,
+   ``libs.pri`` and the per-module ``*.pro`` files are gone, and
+   ``tools/jenkins/build-natron.sh`` drives CMake directly. Maintaining two
+   build systems in lockstep taxed every source change, and CMake was already
+   the more capable of the two — it is the only one that can generate the
+   Shiboken/PySide bindings.
+
+.. note::
+
+   **C++17 is required**: ``Global/Macros.h`` fails compilation with
+   ``#error "Natron 2.6+ requires C++17"`` if the standard is older. Configure
+   your toolchain accordingly.
 
 .. note::
 
    If you touch the source layout — add a file, add a module, rename something —
-   you must update **both** build systems (the relevant ``*.pro``/``*.pri`` and
-   the relevant ``CMakeLists.txt``). A change that only updates one will break
-   the build on the other platforms.
+   update the relevant ``CMakeLists.txt``. Most module targets glob their
+   sources, but the bundled libraries and the crash reporter list theirs
+   explicitly.
 
 Platform-specific, step-by-step instructions (including how to obtain the
 third-party dependencies) live at the repository root in ``INSTALL_LINUX.md``,
@@ -38,34 +45,54 @@ chapter explains the *structure* of the build so those instructions make sense.
 Modules and their build order
 -----------------------------
 
-``Project.pro`` declares the module dependency graph explicitly. Reading it is
-the fastest way to understand how the pieces fit together::
+``libs/CMakeLists.txt`` and the per-module ``CMakeLists.txt`` files declare the
+dependency graph::
 
-    glog.depends     = gflags
-    ceres.depends    = glog gflags
-    libmv.depends    = gflags ceres
+    ceres.depends    = Eigen3::Eigen glog::glog   (Eigen and glog from vcpkg)
+    libmv.depends    = ceres
     openMVG.depends  = ceres
-    Engine.depends   = libmv openMVG HostSupport libtess ceres
+    Engine.depends   = libmv openMVG HostSupport libtess ceres hoedown
     Renderer.depends = Engine
     Gui.depends      = Engine qhttpserver
-    Tests.depends    = Gui Engine
+    Tests.depends    = Engine GTest::gtest GTest::gmock
     App.depends      = Gui Engine
 
-So the build order is: the bundled libraries first (``gflags``, ``glog``,
-``ceres``, ``libmv``, ``openMVG``, ``qhttpserver``, ``hoedown``, ``libtess``),
-then ``HostSupport``, then ``Engine``, then the front-ends (``Renderer``,
-``Gui``), then ``App``, ``Tests`` and ``PythonBin``.
+So the build order is: the remaining in-tree libraries first (``ceres``,
+``libmv``, ``openMVG``, ``hoedown``, ``libtess``), then ``HostSupport``, then
+``Engine``, then the front-ends (``Renderer``, ``Gui``), then ``App``,
+``Tests`` and ``PythonBin``.
 
 Third-party dependencies
 ------------------------
 
-Some dependencies are **bundled** in ``libs/`` and built from source as part of
-the project: ``ceres``, ``openMVG`` and ``libmv`` (the tracker), ``Eigen3``
-(headers), ``gflags`` and ``glog``, ``hoedown`` (Markdown → HTML for node docs),
-``libtess`` (polygon tessellation for roto), ``qhttpserver`` (the internal
-documentation web server), ``SequenceParsing`` (image sequence detection) and
-``google-breakpad`` (crash reporting). With CMake, ``-DNATRON_SYSTEM_LIBS=ON``
-uses system copies of some of these instead.
+``vcpkg.json`` declares the dependencies resolved by the package manager:
+``eigen3``, ``glog`` (and ``gflags`` beneath it), plus ``gtest`` under the
+``tests`` feature. The manifest pins a vcpkg ``builtin-baseline`` so every
+platform resolves identical versions, and pins Eigen to 3.4.0 — the bundled
+copy was 3.3.7 and the current vcpkg default is 5.0.1, which Ceres 1.12
+predates by a decade.
+
+A smaller set is still **bundled** in ``libs/`` and built from source, each for
+a specific reason:
+
+``ceres``
+    Pinned at 1.12. ``libs/libmv/libmv/simple_pipeline/modal_solver.cc`` uses
+    ``ceres::LocalParameterization``, removed in Ceres 2.2.
+``libmv``
+    No upstream package exists.
+``openMVG``
+    v0.9 plus four patches in ``libs/openMVG/patches/``, two of which add
+    Natron-authored PROSAC estimators that upstream does not carry.
+``libtess``
+    A Natron fork of the SGI GLU tessellator (polygon tessellation for roto).
+``hoedown``
+    Markdown → HTML for the node documentation. No vcpkg port exists.
+``qhttpserver``
+    The internal documentation web server behind ``Gui/DocumentationManager``.
+    No vcpkg port exists.
+
+``SequenceParsing`` (image sequence detection) and ``google-breakpad`` (crash
+reporting) remain git submodules.
 
 Other dependencies must be present on the system: **Qt** (5 or 6), **Boost**
 (notably ``boost::serialization``), **Python 3** plus **Shiboken/PySide**,
@@ -86,7 +113,6 @@ The CMake build already exposes a Qt version switch::
   **PySide6**, and additionally requires the ``OpenGLWidgets`` component
   (``QOpenGLWidget`` moved into its own module in Qt 6).
 
-The qmake build does **not** yet have an equivalent switch and targets Qt 5.
 Completing and stabilizing Qt 6 support is an active work item; see
 :ref:`maint-qt6`.
 
@@ -108,9 +134,17 @@ Build type, sanitizers and debugging
   ``Global/FloatingPointExceptions.h`` and the ``main()`` functions) so that a
   stray ``NaN`` or division by zero aborts immediately instead of silently
   propagating through the image pipeline.
-- The qmake build supports ``CONFIG+=addresssanitizer`` for an
-  AddressSanitizer build (see the messages at the bottom of ``Project.pro``),
-  and ``CONFIG+=enable-breakpad`` to build with the Breakpad crash reporter.
+- ``-DNATRON_BREAKPAD=ON`` builds the Breakpad crash reporter
+  (``BreakpadClient``, ``NatronCrashReporter`` and
+  ``NatronRendererCrashReporter``). It is off by default, and the bundled
+  google-breakpad predates glibc 2.26's ``ucontext_t`` rename, so it does not
+  compile on a modern Linux host.
+- ``-DNATRON_NO_ASSERTIONS=ON`` disables assertions and Qt debug/warning output,
+  and ``-DNATRON_OPENMP=ON`` enables OpenMP. Release builds made by
+  ``tools/jenkins/build-natron.sh`` set both.
+- ``-DNATRON_DEV_STATUS=`` (``SNAPSHOT``/``ALPHA``/``BETA``/``RC``/``STABLE``/
+  ``CUSTOM``) together with ``-DNATRON_BUILD_NUMBER=`` and ``-DBUILD_USER_NAME=``
+  tag a build the way the release pipeline expects.
 
 Code style and the pre-commit hook
 ----------------------------------
