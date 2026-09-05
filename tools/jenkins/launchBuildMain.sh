@@ -559,7 +559,12 @@ setBuildOption "NATRON_VERSION_STRING" "$NATRON_VERSION_STRING"
 # Name of the installer directory, common to all platforms
 INSTALLER_BASENAME="Natron"
 if [ "$NATRON_BUILD_CONFIG" = "SNAPSHOT" ]; then
-    INSTALLER_BASENAME="${INSTALLER_BASENAME}-${NATRON_GIT_BRANCH}-${CURRENT_DATE}"
+    # The branch name ends up in file and directory names, but git happily
+    # allows characters that are path separators or are illegal in Windows
+    # filenames -- "feature/foo" is an ordinary branch name and would otherwise
+    # be treated as a subdirectory. Flatten those to dashes.
+    NATRON_GIT_BRANCH_SAFE=$(echo "$NATRON_GIT_BRANCH" | tr '/\\:*?"<>|' '-')
+    INSTALLER_BASENAME="${INSTALLER_BASENAME}-${NATRON_GIT_BRANCH_SAFE}-${CURRENT_DATE}"
 fi
 
 INSTALLER_OS="${PKGOS}"
