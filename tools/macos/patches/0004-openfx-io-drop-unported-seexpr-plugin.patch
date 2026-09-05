@@ -1,0 +1,21 @@
+diff --git a/IO/Makefile b/IO/Makefile
+index 24cf41c..98ccc23 100644
+--- a/IO/Makefile
++++ b/IO/Makefile
+@@ -11,7 +11,6 @@ ofxsMultiPlane.o \
+ ofxsRectangleInteract.o \
+ ofxsLut.o \
+ GenericReader.o GenericWriter.o SequenceParsing.o \
+-SeExpr.o \
+ SeGrain.o \
+ SeNoise.o \
+ OCIOPluginBase.o GenericOCIO.o $(OCIO_OPENGL_OBJS) \
+@@ -60,8 +59,6 @@ $(TOP_SRCDIR)/OIIO/fr.inria.openfx.ReadOIIO.png \
+ $(TOP_SRCDIR)/OIIO/fr.inria.openfx.ReadOIIO.svg \
+ $(TOP_SRCDIR)/OIIO/fr.inria.openfx.OIIOResize.png \
+ $(TOP_SRCDIR)/OIIO/fr.inria.openfx.OIIOResize.svg \
+-$(TOP_SRCDIR)/SeExpr/fr.inria.openfx.SeExpr.png \
+-$(TOP_SRCDIR)/SeExpr/fr.inria.openfx.SeExpr.svg \
+ $(TOP_SRCDIR)/OIIO/fr.inria.openfx.WriteOIIO.png \
+ $(TOP_SRCDIR)/OIIO/fr.inria.openfx.WriteOIIO.svg \
+ $(TOP_SRCDIR)/PFM/fr.inria.openfx.ReadPFM.png \

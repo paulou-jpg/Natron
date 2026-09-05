@@ -1,0 +1,37 @@
+diff --git a/Support/Library/ofxsParams.cpp b/Support/Library/ofxsParams.cpp
+index 5f9abd3..9834382 100644
+--- a/Support/Library/ofxsParams.cpp
++++ b/Support/Library/ofxsParams.cpp
+@@ -1126,7 +1126,8 @@ namespace OFX {
+     assert(newEntries.size() == newEntriesHint.size() || newEntriesHint.empty());
+     assert(newEntries.size() == newEntriesEnum.size() || newEntriesEnum.empty());
+ 
+-    if ((newEntries.size() != newEntriesHint.size() && !newEntriesHint.empty()) ||
++    if (newEntries.empty() ||
++        (newEntries.size() != newEntriesHint.size() && !newEntriesHint.empty()) ||
+         (newEntries.size() != newEntriesEnum.size() && !newEntriesEnum.empty())) {
+       // Invalid parameters or empty newEntries, reset the property
+ #ifdef OFX_EXTENSIONS_TUTTLE
+@@ -3458,7 +3459,8 @@ namespace OFX {
+     assert(newEntries.size() == newEntriesHint.size() || newEntriesHint.empty());
+     assert(newEntries.size() == newEntriesEnum.size() || newEntriesEnum.empty());
+ 
+-    if ((newEntries.size() != newEntriesHint.size() && !newEntriesHint.empty()) ||
++    if (newEntries.empty() ||
++        (newEntries.size() != newEntriesHint.size() && !newEntriesHint.empty()) ||
+         (newEntries.size() != newEntriesEnum.size() && !newEntriesEnum.empty())) {
+       // Invalid parameters or empty newEntries, reset the property
+ #ifdef OFX_EXTENSIONS_TUTTLE
+diff --git a/Support/Library/ofxsProperty.cpp b/Support/Library/ofxsProperty.cpp
+index 6dc9ceb..2438ad8 100644
+--- a/Support/Library/ofxsProperty.cpp
++++ b/Support/Library/ofxsProperty.cpp
+@@ -212,7 +212,7 @@ namespace OFX {
+     for (std::size_t i = 0; i < values.size(); ++i) {
+       data[i] = values[i].c_str();
+     }
+-    OfxStatus stat = gPropSuite->propSetStringN(_propHandle, property, (int)data.size(), &data[0]);
++    OfxStatus stat = gPropSuite->propSetStringN(_propHandle, property, (int)data.size(), data.empty() ? NULL : &data[0]);
+     OFX::Log::error(stat != kOfxStatOK, "Failed on setting string property %s[0..%d], host returned status %s;",
+                     property, (int)values.size()-1, mapStatusToString(stat));
+     if(throwOnFailure)

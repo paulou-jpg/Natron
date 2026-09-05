@@ -1,0 +1,42 @@
+diff --git a/SeExpr/SeExpr.cpp b/SeExpr/SeExpr.cpp
+index 82f412e..89dd0a2 100644
+--- a/SeExpr/SeExpr.cpp
++++ b/SeExpr/SeExpr.cpp
+@@ -52,7 +52,9 @@
+ #include "ofxsMultiThread.h"
+ #include "ofxsRectangleInteract.h"
+ 
++#ifndef SEEXPR_NEW_LAYOUT
+ #define SEEXPR2
++#endif
+ #ifdef SEEXPR2
+ GCC_DIAG_OFF(deprecated)
+ #include <SeExprBuiltins.h>
+diff --git a/SeExpr/SeGrain.cpp b/SeExpr/SeGrain.cpp
+index 67bd654..203b64a 100644
+--- a/SeExpr/SeGrain.cpp
++++ b/SeExpr/SeGrain.cpp
+@@ -42,7 +42,9 @@
+ 
+ #include "ofxsMacros.h"
+ 
++#ifndef SEEXPR_NEW_LAYOUT
+ #define SEEXPR2
++#endif
+ #ifdef SEEXPR2
+ GCC_DIAG_OFF(deprecated)
+ #include <SeExprBuiltins.h>
+diff --git a/SeExpr/SeNoise.cpp b/SeExpr/SeNoise.cpp
+index b188cf6..c438801 100644
+--- a/SeExpr/SeNoise.cpp
++++ b/SeExpr/SeNoise.cpp
+@@ -51,7 +51,9 @@
+ 
+ #include "ofxsMacros.h"
+ 
++#ifndef SEEXPR_NEW_LAYOUT
+ #define SEEXPR2
++#endif
+ #ifdef SEEXPR2
+ GCC_DIAG_OFF(deprecated)
+ #include <SeExprBuiltins.h>
