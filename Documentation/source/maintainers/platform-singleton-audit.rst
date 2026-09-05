@@ -208,11 +208,11 @@ Ordered so that each step is independently reviewable and shrinks the next:
 1. **Icons out of the singleton** — 161 uses, ``Gui`` only, zero engine risk.
    Done: they now go through ``Gui/NatronIcons.h``, so the dependency sits in
    one translation unit instead of twenty-five.
-2. **Split ``Settings``** into engine configuration and client preferences.
-   No call sites change yet. This is design work, and it is the prerequisite
-   for the largest batch rather than part of it. The proposed split is below.
-3. **The engine-configuration half of ``Settings``**, injected through the
-   engine context. The client half can keep a global accessor.
+2. **Settings**: keep one object, matching Nuke, and gate interface-only
+   behaviour on a runtime predicate rather than dividing the class. See below —
+   this was originally planned as a split, and researching Nuke changed it.
+3. **The ``Settings`` call sites**, once the accessor is settled. No longer
+   blocked on a split.
 4. **``getTopLevelInstance``** — 17 uses, but reading them shows only about
    six are what the name suggests. Eleven are message routing: the eight
    ``Dialogs`` functions and the script-editor output ask "is there a user
@@ -234,8 +234,8 @@ splitting it is what makes the batch safe.
 Throughout, keep the ``appPTR`` macro working behind a shim so that the tree
 builds after every batch, and delete it only when the last caller is gone.
 
-Proposed split of ``Settings``
-------------------------------
+What is actually in ``Settings``
+--------------------------------
 
 Counted from the knob declarations in ``Engine/Settings.h``, grouped by the
 page comments already in the file. 153 knobs in nineteen groups:
@@ -295,28 +295,61 @@ and the largest single block is the 55 appearance knobs: fonts, the stylesheet,
 and the colours of the main window, curve editor, dope sheet, script editor and
 node graph. A headless renderer has no use for any of them.
 
-.. note::
+.. important::
 
-   The proportions are the argument. Roughly two thirds of ``Settings`` is
-   desktop-client preference, so treating the object as engine state — which is
-   what a blanket accessor would do — gets the majority case wrong.
+   **Do not split the object. Nuke does not, and Natron already matches its
+   shape.**
 
-The ``General`` page is itself mixed and has to be divided by hand: auto-save
-behaviour, the save-version count and the host name are engine configuration,
-while the update check and the crash-reporting toggles belong to the client.
-Nine knobs, so this is small, but it cannot be done by moving a page wholesale.
+   Nuke keeps a single ``Preferences`` node whose knobs cover colour schemes,
+   autosave, memory usage and node defaults together, saved to
+   ``preferences.nk``. It does not divide preferences into engine and interface
+   halves. Natron's ``Settings`` is already the same construct — a knob holder
+   with pages — so splitting it into two classes would *diverge* from Nuke
+   rather than converge on it.
 
-Two consequences worth settling while splitting:
+   What Nuke separates instead is **when code runs**, not what the data
+   contains: ``init.py`` executes in every session including terminal and
+   render, while ``menu.py`` executes only in a GUI session, and scripts branch
+   on ``nuke.env['gui']``. Natron already has the equivalent predicate in
+   ``appPTR->isBackground()``.
+
+   Nuke does keep a second store, ``uistate.ini``, but the line there is
+   **transient window and workspace state** — window locations, panel layout,
+   with a few settings such as the viewer playback cache size — not engine
+   versus client.
+
+So the table above should be read as documentation of what the pages *mean*,
+useful for deciding which knobs a headless engine may ignore, rather than as a
+plan to divide the class.
+
+What follows from matching Nuke
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``Settings`` stays one object. The 209 call sites do not have to choose a
+  half, which removes the reason this batch was blocked.
+- Behaviour that only makes sense with an interface is gated on a runtime
+  predicate, the way Nuke gates on ``nuke.env['gui']``. The OCIO warning in
+  ``Settings.cpp`` is exactly this case: keep the config knob, gate the warning.
+- Window and workspace state is the thing worth separating, if anything is,
+  and that is a different axis from the one proposed above.
+
+The one place Natron may still need to diverge is multiple engines in one
+process, since Nuke has no equivalent and therefore offers no guidance. That is
+not a present requirement, so it should not drive the design now; if it becomes
+one, per-engine overrides layered over a single settings object are a smaller
+change than two classes.
+
+Two consequences worth settling either way:
 
 - **Ownership of the file.** Preferences are saved through ``QSettings`` today.
   If engine configuration is to be settable by an embedding application, it
   needs to be constructible without reading the user's desktop preferences at
   all.
-- **The OCIO knobs are a boundary case.** Colour management is engine
-  configuration, but the config is chosen through a UI and warned about on
-  change (``Settings.cpp`` reaches ``getTopLevelInstance`` for exactly that
-  warning). The engine half should hold the config; the warning belongs to the
-  client.
+- **The OCIO warning.** ``Settings.cpp`` reaches ``getTopLevelInstance`` only
+  to warn the user that the OCIO config changed. Keeping one settings object
+  means the knob stays put and the warning is gated on whether an interface
+  exists — the ``nuke.env['gui']`` pattern applied to one of the few remaining
+  genuinely per-engine call sites.
 
 The related coupling
 --------------------
