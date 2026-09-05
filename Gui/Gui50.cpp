@@ -805,8 +805,11 @@ Gui::getNodesEntitledForOverlays(NodesList & nodes) const
             continue;
         }
         NodeGuiPtr node = panel->getNode();
+        if (!node) {
+            continue;
+        }
         NodePtr internalNode = node->getNode();
-        if (node && internalNode) {
+        if (internalNode) {
             if ( internalNode->shouldDrawOverlay() ) {
                 nodes.push_back( node->getNode() );
             }

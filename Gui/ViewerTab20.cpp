@@ -78,12 +78,16 @@ ViewerTab::drawOverlays(double time,
 {
     NodePtr rotoPaintNode;
     RotoStrokeItemPtr curStroke;
-    bool isDrawing;
+    bool isDrawing = false;
+
+    if ( !getGui() ||
+         !getGui()->getApp() ) {
+        return;
+    }
 
     getGui()->getApp()->getActiveRotoDrawingStroke(&rotoPaintNode, &curStroke, &isDrawing);
 
-    if ( !getGui() ||
-         !getGui()->getApp() ||
+    if (
          !_imp->viewer ||
          getGui()->getApp()->isClosing() ||
          isFileDialogViewer() ||
