@@ -111,10 +111,36 @@ jobs:
       - name: Verify plugin loading
         run: |
           INSTALLER_DIR=$(cygpath -u '${{ steps.build.outputs.INSTALLER_DIR }}')/${{ steps.build.outputs.INSTALLER_NAME }}
+          failed=""
           for x in $(find ${INSTALLER_DIR}/Plugins -name *.ofx); do
             echo "Testing $(basename ${x}) ..."
-            PATH=${INSTALLER_DIR}/bin ./verify_plugin_loads.exe "${x}"
+            if PATH=${INSTALLER_DIR}/bin ./verify_plugin_loads.exe "${x}"; then
+              continue
+            fi
+            failed="${failed} $(basename ${x})"
+            # A load failure only reports the Windows error string, which does
+            # not say which import is missing. Dump what the plug-in needs and
+            # what the installer actually ships so the two can be compared.
+            echo "::group::$(basename ${x}): imports not present in the bundle"
+            for dll in $(objdump -p "${x}" | sed -n 's/^\s*DLL Name:\s*//p' | sort -u); do
+              if [ ! -f "${INSTALLER_DIR}/bin/${dll}" ]; then
+                echo "  MISSING FROM BUNDLE: ${dll}  (system: $(ls /mingw64/bin/${dll} 2>/dev/null || echo 'not in /mingw64/bin'))"
+              fi
+            done
+            echo "::endgroup::"
+            echo "::group::$(basename ${x}): bundled vs installed versions"
+            for dll in $(objdump -p "${x}" | sed -n 's/^\s*DLL Name:\s*//p' | sort -u); do
+              b="${INSTALLER_DIR}/bin/${dll}"; m="/mingw64/bin/${dll}"
+              if [ -f "$b" ] && [ -f "$m" ] && ! cmp -s "$b" "$m"; then
+                echo "  DIFFERS: ${dll} (bundled $(stat -c %s "$b") bytes, installed $(stat -c %s "$m") bytes)"
+              fi
+            done
+            echo "::endgroup::"
           done
+          if [ -n "${failed}" ]; then
+            echo "Plug-ins that failed to load:${failed}"
+            exit 1
+          fi
 
       - name: Verify passing tests match 2.5.0 release
         run: |
@@ -223,7 +249,33 @@ jobs:
       - name: Verify plugin loading
         run: |
           INSTALLER_DIR=$(cygpath -u '${{ steps.build.outputs.INSTALLER_DIR }}')/${{ steps.build.outputs.INSTALLER_NAME }}
+          failed=""
           for x in $(find ${INSTALLER_DIR}/Plugins -name *.ofx); do
             echo "Testing $(basename ${x}) ..."
-            PATH=${INSTALLER_DIR}/bin ./verify_plugin_loads.exe "${x}"
+            if PATH=${INSTALLER_DIR}/bin ./verify_plugin_loads.exe "${x}"; then
+              continue
+            fi
+            failed="${failed} $(basename ${x})"
+            # A load failure only reports the Windows error string, which does
+            # not say which import is missing. Dump what the plug-in needs and
+            # what the installer actually ships so the two can be compared.
+            echo "::group::$(basename ${x}): imports not present in the bundle"
+            for dll in $(objdump -p "${x}" | sed -n 's/^\s*DLL Name:\s*//p' | sort -u); do
+              if [ ! -f "${INSTALLER_DIR}/bin/${dll}" ]; then
+                echo "  MISSING FROM BUNDLE: ${dll}  (system: $(ls /mingw64/bin/${dll} 2>/dev/null || echo 'not in /mingw64/bin'))"
+              fi
+            done
+            echo "::endgroup::"
+            echo "::group::$(basename ${x}): bundled vs installed versions"
+            for dll in $(objdump -p "${x}" | sed -n 's/^\s*DLL Name:\s*//p' | sort -u); do
+              b="${INSTALLER_DIR}/bin/${dll}"; m="/mingw64/bin/${dll}"
+              if [ -f "$b" ] && [ -f "$m" ] && ! cmp -s "$b" "$m"; then
+                echo "  DIFFERS: ${dll} (bundled $(stat -c %s "$b") bytes, installed $(stat -c %s "$m") bytes)"
+              fi
+            done
+            echo "::endgroup::"
           done
+          if [ -n "${failed}" ]; then
+            echo "Plug-ins that failed to load:${failed}"
+            exit 1
+          fi
