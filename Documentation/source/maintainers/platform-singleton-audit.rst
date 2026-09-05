@@ -49,6 +49,32 @@ The reach
    The two halves are separable and should be scheduled as separate streams,
    not as one 127-file sweep.
 
+Gui does not use the same macro
+-------------------------------
+
+The two halves are not merely separate, they are different constructs.
+``Gui/GuiApplicationManager.h`` undefines the engine's macro and replaces it
+with a downcast::
+
+    #if defined(appPTR)
+    #undef appPTR
+    #endif
+    #define appPTR ( static_cast<GuiApplicationManager*>( AppManager::instance() ) )
+
+So every ``appPTR`` in ``Gui`` is an **unchecked downcast of the singleton to
+the GUI subclass**, not a reference to the engine object. Three consequences
+matter for planning:
+
+- It explains why ``getIcon`` never appears in ``Engine``. It cannot: it is
+  declared on ``GuiApplicationManager``, not on ``AppManager``.
+- The ``static_cast`` is undefined behaviour whenever the instance is not
+  actually a ``GuiApplicationManager`` — exactly the headless configuration
+  this whole plan is working towards. Today it is safe only because a process
+  running ``Gui`` code always constructed the GUI subclass.
+- Injecting an engine context is therefore not sufficient on the ``Gui`` side.
+  The client depends on the singleton's *type identity*, so the coupling to
+  break there is the subclass relationship, not just the global access.
+
 What the singleton is actually used for
 ---------------------------------------
 
