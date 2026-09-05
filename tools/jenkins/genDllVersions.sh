@@ -64,6 +64,31 @@ function findDll() {
     fi
 }
 
+# msys2 can leave several versions of the same DLL installed side by side -- for
+# example libx264-164.dll and libx264-165.dll once a package has been installed
+# with "pacman --overwrite". Picking one arbitrarily risks shipping a DLL that
+# ffmpeg was never linked against, so resolve the ambiguity from the ffmpeg
+# binaries' own dependencies and only fall back to the highest version.
+function disambiguateDll() {
+    local prefix="$1"
+    local candidates="$2"
+    local linked=""
+    if [ -d "${FFMPEG_PATH:-}" ]; then
+        linked=$( (ldd "$FFMPEG_PATH"/*.dll 2>/dev/null || true) \
+                  | grep -oiE "${prefix}[0-9]+\.dll" | sort -u | head -n 1 || true)
+    fi
+    if [ -n "$linked" ]; then
+        local c
+        for c in $candidates; do
+            if [ "$c" = "$linked" ]; then
+                echo "$linked"
+                return 0
+            fi
+        done
+    fi
+    echo "$candidates" | tr " " "\n" | sort -V | tail -n 1
+}
+
 function catDll() {
     DLL_NAME=""
     findDll $1
@@ -73,9 +98,10 @@ function catDll() {
    #     sleep 1
 	return 1
     elif [ "$DLL_LEN" != "1" ]; then
-        echo "WARNING, More than 1 DLL were found for $1: $DLL_NAME"
-  #      sleep 1
-	return 1
+        local CHOSEN
+        CHOSEN=$(disambiguateDll "$1" "$DLL_NAME")
+        echo "WARNING, more than 1 DLL found for $1: $(echo $DLL_NAME) -- using $CHOSEN"
+        DLL_NAME="$CHOSEN"
     fi
 #    echo "Found DLL: $DLL_NAME"
     if [ "$INIT_VAR" = "1" ]; then
