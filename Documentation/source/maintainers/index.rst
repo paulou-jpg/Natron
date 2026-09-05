@@ -35,6 +35,7 @@ introduced where needed.
     platform-python-api
     platform-project-format
     platform-singleton-audit
+    platform-qt-in-core
     subsystems
     contributing
     qt6-migration
