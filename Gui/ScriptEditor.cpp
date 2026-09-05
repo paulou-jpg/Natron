@@ -133,7 +133,7 @@ ScriptEditor::ScriptEditor(Gui* gui)
     NatronIcons::get(NATRON_PIXMAP_SCRIPT_SAVE_SCRIPT, NATRON_MEDIUM_BUTTON_ICON_SIZE, &saveScriptPix);
 
     _imp->undoB = new Button(QIcon(undoPix), QString(), _imp->buttonsContainer);
-    QKeySequence undoSeq(Qt::CTRL + Qt::Key_BracketLeft);
+    QKeySequence undoSeq(Qt::CTRL | Qt::Key_BracketLeft);
     _imp->undoB->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
     _imp->undoB->setIconSize( QSize(NATRON_MEDIUM_BUTTON_ICON_SIZE, NATRON_MEDIUM_BUTTON_ICON_SIZE) );
     _imp->undoB->setFocusPolicy(Qt::NoFocus);
@@ -142,7 +142,7 @@ ScriptEditor::ScriptEditor(Gui* gui)
     QObject::connect( _imp->undoB, SIGNAL(clicked(bool)), this, SLOT(onUndoClicked()) );
 
     _imp->redoB = new Button(QIcon(redoPix), QString(), _imp->buttonsContainer);
-    QKeySequence redoSeq(Qt::CTRL + Qt::Key_BracketRight);
+    QKeySequence redoSeq(Qt::CTRL | Qt::Key_BracketRight);
     _imp->redoB->setFocusPolicy(Qt::NoFocus);
     _imp->redoB->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
     _imp->redoB->setIconSize( QSize(NATRON_MEDIUM_BUTTON_ICON_SIZE, NATRON_MEDIUM_BUTTON_ICON_SIZE) );
@@ -181,7 +181,7 @@ ScriptEditor::ScriptEditor(Gui* gui)
     QObject::connect( _imp->saveScriptB, SIGNAL(clicked(bool)), this, SLOT(onSaveScriptClicked()) );
 
     _imp->execScriptB = new Button(QIcon(execScriptPix), QString(), _imp->buttonsContainer);
-    QKeySequence execSeq(Qt::CTRL + Qt::Key_Return);
+    QKeySequence execSeq(Qt::CTRL | Qt::Key_Return);
     _imp->execScriptB->setFocusPolicy(Qt::NoFocus);
     _imp->execScriptB->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
     _imp->execScriptB->setIconSize( QSize(NATRON_MEDIUM_BUTTON_ICON_SIZE, NATRON_MEDIUM_BUTTON_ICON_SIZE) );
@@ -202,7 +202,7 @@ ScriptEditor::ScriptEditor(Gui* gui)
     QObject::connect( _imp->showHideOutputB, SIGNAL(clicked(bool)), this, SLOT(onShowHideOutputClicked(bool)) );
 
     _imp->clearOutputB = new Button(QIcon(clearOutpoutPix), QString(), _imp->buttonsContainer);
-    QKeySequence clearSeq(Qt::CTRL + Qt::Key_Backspace);
+    QKeySequence clearSeq(Qt::CTRL | Qt::Key_Backspace);
     _imp->clearOutputB->setFocusPolicy(Qt::NoFocus);
     _imp->clearOutputB->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
     _imp->clearOutputB->setIconSize( QSize(NATRON_MEDIUM_BUTTON_ICON_SIZE, NATRON_MEDIUM_BUTTON_ICON_SIZE) );
