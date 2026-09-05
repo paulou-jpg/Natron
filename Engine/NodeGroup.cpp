@@ -1655,7 +1655,9 @@ escapeString(const QString& str)
         } else {
 #if PY_MAJOR_VERSION >= 3
             // Python 3 strings are unicode
-            ret.append(QString::fromUtf8("\\u%1").arg(str[i].unicode(), 4, 16, QLatin1Char('0')));
+            // QChar::unicode() returns char16_t in Qt 6 (ushort in Qt 5), and
+            // QString::arg() has no char16_t overload.
+            ret.append(QString::fromUtf8("\\u%1").arg( static_cast<ushort>( str[i].unicode() ), 4, 16, QLatin1Char('0') ));
 #else
             // Python 2: convert to Utf8
             QByteArray utf8 = QString(str[i]).toUtf8();
