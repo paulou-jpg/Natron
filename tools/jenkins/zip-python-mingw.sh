@@ -62,7 +62,15 @@ if [ ! -d "${SRC}" ]; then
 fi
 
 for dir in ${PYDIRS}; do
-    cp -a "${SRC}/${dir}" "${EMBED}/"
+    if [ -d "${SRC}/${dir}" ]; then
+        cp -a "${SRC}/${dir}" "${EMBED}/"
+    else
+        # The standard library changes between Python releases -- lib2to3 and
+        # msilib were both removed in 3.13, and msys2 tracks Python closely.
+        # Skip what this interpreter does not ship rather than failing the
+        # whole installer build.
+        echo "Note: ${dir} is not part of Python ${PYVER}, skipping it."
+    fi
 done
 
 mkdir -p "${EMBED}/site-packages"
