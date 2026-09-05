@@ -190,8 +190,12 @@ namespace Python { }
 #define NATRON_DEVELOPMENT_STATUS NATRON_DEVELOPMENT_DEVEL
 #endif
 
-///For example RC 1, RC 2 etc... This is to be defined from within the qmake call, passing BUILD_NUMBER=X to the command line
-//#define NATRON_BUILD_NUMBER 0
+///For example RC 1, RC 2 etc... This is normally set by the build
+///(-DNATRON_BUILD_NUMBER=X). A default is needed because the binding
+///generator parses these headers without the build's compile definitions.
+#ifndef NATRON_BUILD_NUMBER
+#define NATRON_BUILD_NUMBER 0
+#endif
 
 
 // Documentation

@@ -33,6 +33,12 @@
 
 #include <dlfcn.h>
 
+// X11's headers define Status and Bool as macros, which breaks any Qt header
+// parsed afterwards (qtextstream.h says so explicitly). Include Qt first, and
+// outside the extern "C" block -- these are C++ headers.
+#include <QTextStream>
+#include <QVariant>
+
 extern "C"
 {
 #include <X11/Xlib.h>

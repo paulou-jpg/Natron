@@ -25,6 +25,17 @@
 #include <QString>
 #include <QUrl>
 #include <QFileInfo>
+#include <QMutex>
+
+QT_BEGIN_NAMESPACE
+class QEvent;
+class QMutex;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+// Declared, not included: QEnterEvent is a QtGui type and this header must not
+// pull QtGui into the Engine build.
+class QEnterEvent;
+#endif
+QT_END_NAMESPACE
 
 NATRON_NAMESPACE_ENTER
 
@@ -46,13 +57,31 @@ removeFileExtension(QString & filename)
     return extension;
 }
 
-// Define compatibility typedefs so code builds with Qt5 & Qt6
+// Define compatibility typedefs so code builds with Qt5 & Qt6.
+//
+// Qt 5 delivered enter events as a plain QEvent; Qt 6 introduced QEnterEvent.
+// The Qt 6 alias has to name the global type explicitly: written unqualified it
+// would refer to the typedef being declared. A forward declaration is enough,
+// which matters because QEnterEvent belongs to QtGui and this header is
+// included by Engine, which links only QtCore, QtNetwork and QtConcurrent.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-typedef QEnterEvent QEnterEvent;
+typedef ::QEnterEvent QEnterEvent;
 #elif QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-typedef QEvent QEnterEvent;
+typedef ::QEvent QEnterEvent;
 #else
 #error "Unsupported version of QT"
+#endif
+
+// Qt 6 turned QMutexLocker into a class template and split QMutex from
+// QRecursiveMutex, so the locker is parameterised on which mutex it holds.
+// Declaring a plain local still works there through class template argument
+// deduction, but naming the type -- in a smart pointer, a container or a cast --
+// needs the argument. Qt 5's QMutexLocker takes any QMutex, so the parameter is
+// simply ignored there.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+template<typename Mutex> using MutexLocker = ::QMutexLocker<Mutex>;
+#else
+template<typename Mutex> using MutexLocker = ::QMutexLocker;
 #endif
 
 } // namespace QtCompat

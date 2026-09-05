@@ -117,7 +117,18 @@ if(IS_DEBUG_BUILD AND WIN32)
     # Remove NDEBUG from Shiboken INTERFACE_COMPILE_DEFINITIONS so it is not inherited in debug builds.
     get_property(SHIBOKEN_DEFS TARGET ${SHIBOKEN_LIB} PROPERTY INTERFACE_COMPILE_DEFINITIONS)
     list(REMOVE_ITEM SHIBOKEN_DEFS NDEBUG)
-    set_property(TARGET ${SHIBOKEN_LIB} PROPERTY INTERFACE_COMPILE_DEFINITIONS SHIBOKEN_DEFS)
+    set_property(TARGET ${SHIBOKEN_LIB} PROPERTY INTERFACE_COMPILE_DEFINITIONS ${SHIBOKEN_DEFS})
+endif()
+
+# Some distributions build Shiboken against CPython's limited API and propagate
+# Py_LIMITED_API through its imported target. Natron embeds the interpreter
+# directly and calls PyRun_String, PyRun_SimpleString and Py_CompileString,
+# none of which the limited API exposes, so the definition must not be
+# inherited.
+get_property(SHIBOKEN_DEFS TARGET ${SHIBOKEN_LIB} PROPERTY INTERFACE_COMPILE_DEFINITIONS)
+if(SHIBOKEN_DEFS)
+    list(FILTER SHIBOKEN_DEFS EXCLUDE REGEX "^Py_LIMITED_API")
+    set_property(TARGET ${SHIBOKEN_LIB} PROPERTY INTERFACE_COMPILE_DEFINITIONS ${SHIBOKEN_DEFS})
 endif()
 
 if(NATRON_DEV_STATUS STREQUAL "CUSTOM")

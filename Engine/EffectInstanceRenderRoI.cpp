@@ -1517,7 +1517,12 @@ EffectInstance::renderRoI(const RenderRoIArgs & args,
         ///locks belongs to an instance)
 
 
-        std::unique_ptr<QMutexLocker> locker;
+        // Qt 6 parameterises QMutexLocker on the mutex type, and these two
+        // branches lock different kinds: the node's shared mutex is a QMutex,
+        // the plug-in lock a QRecursiveMutex. One locker per kind; at most one
+        // is ever engaged.
+        std::unique_ptr<QtCompat::MutexLocker<QMutex> > locker;
+        std::unique_ptr<QtCompat::MutexLocker<QRecursiveMutex> > recursiveLocker;
 
 
         EffectInstancePtr renderInstance;
@@ -1535,14 +1540,15 @@ EffectInstance::renderRoI(const RenderRoIArgs & args,
         assert(renderInstance);
 
         if (safety == eRenderSafetyInstanceSafe) {
-            locker.reset( new QMutexLocker( &getNode()->getRenderInstancesSharedMutex() ) );
+            locker.reset( new QtCompat::MutexLocker<QMutex>( &getNode()->getRenderInstancesSharedMutex() ) );
         } else if (safety == eRenderSafetyUnsafe) {
             const Plugin* p = getNode()->getPlugin();
             assert(p);
-            locker.reset( new QMutexLocker( p->getPluginLock() ) );
+            recursiveLocker.reset( new QtCompat::MutexLocker<QRecursiveMutex>( p->getPluginLock() ) );
         } else {
             // no need to lock
             Q_UNUSED(locker);
+            Q_UNUSED(recursiveLocker);
         }
 
 

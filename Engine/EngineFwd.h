@@ -28,6 +28,8 @@
 
 #include "Global/Macros.h"
 
+#include <QtCore/qglobal.h> // QT_VERSION_CHECK
+
 #include <memory>
 #include <list>
 #include <vector>
@@ -61,7 +63,13 @@ class QNetworkRequest;
 class QProcess;
 class QSettings;
 class QString;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 class QStringList;
+#else
+// Qt 6 declares QStringList as an alias for QList<QString>, so it cannot be
+// forward declared as a class.
+#include <QtCore/qcontainerfwd.h>
+#endif
 class QThread;
 class QTimer;
 class QUrl;
