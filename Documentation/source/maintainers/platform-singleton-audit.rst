@@ -210,7 +210,7 @@ Ordered so that each step is independently reviewable and shrinks the next:
    one translation unit instead of twenty-five.
 2. **Split ``Settings``** into engine configuration and client preferences.
    No call sites change yet. This is design work, and it is the prerequisite
-   for the largest batch rather than part of it.
+   for the largest batch rather than part of it. The proposed split is below.
 3. **The engine-configuration half of ``Settings``**, injected through the
    engine context. The client half can keep a global accessor.
 4. **``getTopLevelInstance``** — 17 uses, but reading them shows only about
@@ -233,6 +233,90 @@ splitting it is what makes the batch safe.
 
 Throughout, keep the ``appPTR`` macro working behind a shim so that the tree
 builds after every batch, and delete it only when the last caller is gone.
+
+Proposed split of ``Settings``
+------------------------------
+
+Counted from the knob declarations in ``Engine/Settings.h``, grouped by the
+page comments already in the file. 153 knobs in nineteen groups:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 46 12 42
+
+   * - Page
+     - Knobs
+     - Belongs to
+   * - Threading
+     - 7
+     - **Engine** — render thread counts, thread pool
+   * - Rendering
+     - 5
+     - **Engine** — NaN handling, RGB support
+   * - GPU rendering
+     - 5
+     - **Engine** — OpenGL contexts and renderer choice
+   * - Projects setup
+     - 5
+     - **Engine** — project load and format behaviour
+   * - Color-Management (OCIO)
+     - 5
+     - **Engine** — the colour pipeline
+   * - Caching
+     - 11
+     - **Engine** — image cache sizing
+   * - Plugins
+     - 6
+     - **Engine** — plug-in search paths
+   * - Python
+     - 9
+     - **Engine** — project and node callbacks
+   * - User Interface
+     - 10
+     - Client
+   * - Viewer
+     - 12
+     - Client
+   * - Nodegraph
+     - 11
+     - Client
+   * - Documentation
+     - 3
+     - Client — the local documentation server
+   * - Appearance (six pages)
+     - 55
+     - Client — fonts, stylesheet, and every colour
+   * - General
+     - 9
+     - **Mixed** — see below
+
+That is **53 knobs of engine configuration against 91 of client preference**,
+and the largest single block is the 55 appearance knobs: fonts, the stylesheet,
+and the colours of the main window, curve editor, dope sheet, script editor and
+node graph. A headless renderer has no use for any of them.
+
+.. note::
+
+   The proportions are the argument. Roughly two thirds of ``Settings`` is
+   desktop-client preference, so treating the object as engine state — which is
+   what a blanket accessor would do — gets the majority case wrong.
+
+The ``General`` page is itself mixed and has to be divided by hand: auto-save
+behaviour, the save-version count and the host name are engine configuration,
+while the update check and the crash-reporting toggles belong to the client.
+Nine knobs, so this is small, but it cannot be done by moving a page wholesale.
+
+Two consequences worth settling while splitting:
+
+- **Ownership of the file.** Preferences are saved through ``QSettings`` today.
+  If engine configuration is to be settable by an embedding application, it
+  needs to be constructible without reading the user's desktop preferences at
+  all.
+- **The OCIO knobs are a boundary case.** Colour management is engine
+  configuration, but the config is chosen through a UI and warned about on
+  change (``Settings.cpp`` reaches ``getTopLevelInstance`` for exactly that
+  warning). The engine half should hold the config; the warning belongs to the
+  client.
 
 The related coupling
 --------------------
