@@ -64,52 +64,33 @@ function findDll() {
     fi
 }
 
-# msys2 can leave several versions of the same DLL installed side by side -- for
-# example libx264-164.dll and libx264-165.dll once a package has been installed
-# with "pacman --overwrite". Picking one arbitrarily risks shipping a DLL that
-# ffmpeg was never linked against, so resolve the ambiguity from the ffmpeg
-# binaries' own dependencies and only fall back to the highest version.
-function disambiguateDll() {
-    local prefix="$1"
-    local candidates="$2"
-    local linked=""
-    if [ -d "${FFMPEG_PATH:-}" ]; then
-        linked=$( (ldd "$FFMPEG_PATH"/*.dll 2>/dev/null || true) \
-                  | grep -oiE "${prefix}[0-9]+\.dll" | sort -u | head -n 1 || true)
-    fi
-    if [ -n "$linked" ]; then
-        local c
-        for c in $candidates; do
-            if [ "$c" = "$linked" ]; then
-                echo "$linked"
-                return 0
-            fi
-        done
-    fi
-    echo "$candidates" | tr " " "\n" | sort -V | tail -n 1
-}
-
 function catDll() {
     DLL_NAME=""
     findDll $1
-    DLL_LEN=$(echo "$DLL_NAME" | wc -w)
+    # Some wc implementations pad the count with spaces, so strip them.
+    DLL_LEN=$(echo "$DLL_NAME" | wc -w | tr -d "[:space:]")
     if [ "$DLL_LEN" = "0" ]; then
         echo "WARNING, dll $1 was not found!"
    #     sleep 1
 	return 1
     elif [ "$DLL_LEN" != "1" ]; then
-        local CHOSEN
-        CHOSEN=$(disambiguateDll "$1" "$DLL_NAME")
-        echo "WARNING, more than 1 DLL found for $1: $(echo $DLL_NAME) -- using $CHOSEN"
-        DLL_NAME="$CHOSEN"
+        # msys2 can have several versions of a library installed side by side,
+        # and different consumers legitimately link different ones: ffmpeg-gpl2
+        # links libx264-164 (from natron_x264) while the Arena plug-in stack
+        # links libx264-165 (from the system libx264). Choosing one breaks the
+        # other, so ship them all.
+        echo "Note: several DLLs match $1: $(echo $DLL_NAME) -- bundling all of them."
     fi
 #    echo "Found DLL: $DLL_NAME"
-    if [ "$INIT_VAR" = "1" ]; then
-    	echo "${DLL_VAR_PREFIX}_DLL="'('"${BIN_PATH}/${DLL_NAME}"')' >> "$OUTPUT_FILE_NAME"
-	INIT_VAR=0
-    else
-        echo "${DLL_VAR_PREFIX}_DLL="'('"\"\${${DLL_VAR_PREFIX}_DLL[@]}\" ${BIN_PATH}/${DLL_NAME}"')' >> "$OUTPUT_FILE_NAME"
-    fi
+    local ONE_DLL
+    for ONE_DLL in $DLL_NAME; do
+        if [ "$INIT_VAR" = "1" ]; then
+    	    echo "${DLL_VAR_PREFIX}_DLL="'('"${BIN_PATH}/${ONE_DLL}"')' >> "$OUTPUT_FILE_NAME"
+	    INIT_VAR=0
+        else
+            echo "${DLL_VAR_PREFIX}_DLL="'('"\"\${${DLL_VAR_PREFIX}_DLL[@]}\" ${BIN_PATH}/${ONE_DLL}"')' >> "$OUTPUT_FILE_NAME"
+        fi
+    done
 }
 
 INIT_VAR=1
