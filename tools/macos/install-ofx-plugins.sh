@@ -77,6 +77,21 @@ for bundle in "$@"; do
                 /usr/lib/*|/System/*) continue ;;
             esac
             base="$(basename "$dep")"
+            if [ ! -e "$libdir/$base" ]; then
+                # Homebrew upgrades move the opt/ symlink to a newer version
+                # while a dependent library still names the old one (e.g. an
+                # OpenColorIO built against yaml-cpp 0.8 after yaml-cpp 0.9 is
+                # linked). The exact version usually survives in the Cellar as
+                # an unlinked keg, so take it from there.
+                for srcdir in /usr/local/opt/*/lib /usr/local/Cellar/*/*/lib; do
+                    if [ -e "$srcdir/$base" ]; then
+                        cp -f "$srcdir/$base" "$libdir/$base"
+                        chmod u+w "$libdir/$base"
+                        echo "    + $base (from ${srcdir})"
+                        break
+                    fi
+                done
+            fi
             if [ -e "$libdir/$base" ]; then
                 install_name_tool -change "$dep" "@loader_path/$base" "$f" 2>/dev/null || true
             else
