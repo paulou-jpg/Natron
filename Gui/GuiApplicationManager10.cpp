@@ -41,7 +41,7 @@ CLANG_DIAG_OFF(uninitialized)
 #include <QSettings>
 #include <QFileInfo>
 #include <QApplication>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QFileOpenEvent>
 CLANG_DIAG_ON(deprecated)
 CLANG_DIAG_ON(uninitialized)
@@ -299,9 +299,11 @@ GuiApplicationManager::initializeQApp(int &argc,
 #endif
         app = new Application(this, argc, argv);
     }
-    QDesktopWidget* desktop = app->desktop();
-    int dpiX = desktop->logicalDpiX();
-    int dpiY = desktop->logicalDpiY();
+    // QDesktopWidget was removed in Qt 6; QScreen is the replacement and is
+    // available from Qt 5.1.
+    const QScreen* screen = QGuiApplication::primaryScreen();
+    int dpiX = screen ? qRound( screen->logicalDotsPerInchX() ) : 72;
+    int dpiY = screen ? qRound( screen->logicalDotsPerInchY() ) : 72;
 
     setCurrentLogicalDPI(dpiX, dpiY);
 

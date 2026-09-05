@@ -405,6 +405,11 @@ cmake --build build --parallel 2
 Useful options: `-DNATRON_QT6=ON`, `-DNATRON_BUILD_TESTS=OFF`,
 `-DNATRON_BREAKPAD=ON`, `-DNATRON_OPENMP=ON`, `-DNATRON_NO_ASSERTIONS=ON`.
 
+> **OpenMP on macOS.** Apple's bundled clang does not ship OpenMP support, so
+> `-DNATRON_OPENMP=ON` needs a compiler that has it — `brew install llvm`, or
+> MacPorts' `clang-*` ports — selected with `-DCMAKE_C_COMPILER` and
+> `-DCMAKE_CXX_COMPILER`.
+
 ### Build on Xcode
 
 Generate an Xcode project with the Xcode generator:
