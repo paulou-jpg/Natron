@@ -56,6 +56,7 @@
 #include "Engine/TimeLine.h"
 #include "Engine/Transform.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 #define kMergeOFXParamOperation "operation"
 #define kBlurCImgParamSize "size"
@@ -318,7 +319,7 @@ bool
 RotoStrokeItem::appendPoint(bool newStroke,
                             const RotoPoint& p)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
 
     RotoStrokeItemPtr thisShared = std::dynamic_pointer_cast<RotoStrokeItem>( shared_from_this() );
@@ -815,7 +816,7 @@ RotoStrokeItem::getBoundingBox(double time) const
 std::list<CurvePtr>
 RotoStrokeItem::getXControlPoints() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     std::list<CurvePtr> ret;
     QMutexLocker k(&itemMutex);
     for (std::vector<RotoStrokeItemPrivate::StrokeCurves>::const_iterator it = _imp->strokes.begin(); it != _imp->strokes.end(); ++it) {
@@ -828,7 +829,7 @@ RotoStrokeItem::getXControlPoints() const
 std::list<CurvePtr>
 RotoStrokeItem::getYControlPoints() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     std::list<CurvePtr> ret;
     QMutexLocker k(&itemMutex);
     for (std::vector<RotoStrokeItemPrivate::StrokeCurves>::const_iterator it = _imp->strokes.begin(); it != _imp->strokes.end(); ++it) {

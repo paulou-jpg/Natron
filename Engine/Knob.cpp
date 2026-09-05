@@ -63,6 +63,7 @@
 #include "Engine/ViewerInstance.h"
 
 #include "Engine/EngineFwd.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -678,7 +679,7 @@ KnobHelper::deleteKnob()
 void
 KnobHelper::setKnobGuiPointer(const KnobGuiIPtr& ptr)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->gui = ptr;
 }
 
@@ -826,7 +827,7 @@ void
 KnobHelper::setDimensionName(int dim,
                              const std::string & name)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->dimensionNames[dim] = name;
     if (_signalSlotHandler) {
         _signalSlotHandler->s_dimensionNameChanged(dim);
@@ -1023,7 +1024,7 @@ KnobHelper::moveValuesAtTime(CurveChangeReason reason,
                              std::vector<KeyFrame>* keyframes)
 {
     assert(keyframes);
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert( dimension >= 0 && dimension < (int)_imp->curves.size() );
 
     if ( !canAnimate() || !isAnimated(dimension, view) ) {
@@ -1117,7 +1118,7 @@ KnobHelper::moveValueAtTime(CurveChangeReason reason,
                             double dv,
                             KeyFrame* newKey)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert( dimension >= 0 && dimension < (int)_imp->curves.size() );
 
     if ( !canAnimate() || !isAnimated(dimension, view) ) {
@@ -1155,7 +1156,7 @@ KnobHelper::transformValuesAtTime(CurveChangeReason curveChangeReason,
                                   const Transform::Matrix3x3& matrix,
                                   std::vector<KeyFrame>* keyframes)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert( dimension >= 0 && dimension < (int)_imp->curves.size() );
 
     if ( !canAnimate() || !isAnimated(dimension, view) ) {
@@ -1271,7 +1272,7 @@ KnobHelper::transformValueAtTime(CurveChangeReason curveChangeReason,
                                  const Transform::Matrix3x3& matrix,
                                  KeyFrame* newKey)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert( dimension >= 0 && dimension < (int)_imp->curves.size() );
 
     if ( !canAnimate() || !isAnimated(dimension, view) ) {
@@ -1347,7 +1348,7 @@ KnobHelper::setInterpolationAtTime(CurveChangeReason reason,
                                    KeyframeTypeEnum interpolation,
                                    KeyFrame* newKey)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert( dimension >= 0 && dimension < (int)_imp->curves.size() );
 
     if ( !canAnimate() || !isAnimated(dimension, view) ) {
@@ -1401,7 +1402,7 @@ KnobHelper::moveDerivativesAtTime(CurveChangeReason reason,
                                   double left,
                                   double right)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( ( dimension > (int)_imp->curves.size() ) || (dimension < 0) ) {
         throw std::invalid_argument("KnobHelper::setInterpolationAtTime(): Dimension out of range");
     }
@@ -1461,7 +1462,7 @@ KnobHelper::moveDerivativeAtTime(CurveChangeReason reason,
                                  double derivative,
                                  bool isLeft)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( ( dimension > (int)_imp->curves.size() ) || (dimension < 0) ) {
         throw std::invalid_argument("KnobHelper::setInterpolationAtTime(): Dimension out of range");
     }
@@ -3426,13 +3427,13 @@ KnobHelper::setHintIsMarkdown(bool b)
 void
 KnobHelper::setCustomInteract(const OfxParamOverlayInteractPtr & interactDesc)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->customInteract = interactDesc;
 }
 
 OfxParamOverlayInteractPtr KnobHelper::getCustomInteract() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->customInteract;
 }
@@ -3634,14 +3635,14 @@ KnobI::shouldDrawOverlayInteract() const
 void
 KnobHelper::setOfxParamHandle(void* ofxParamHandle)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->ofxParamHandle = ofxParamHandle;
 }
 
 void*
 KnobHelper::getOfxParamHandle() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->ofxParamHandle;
 }
@@ -4983,7 +4984,7 @@ KnobHolder::~KnobHolder()
 void
 KnobHolder::addKnobToViewerUI(const KnobIPtr& knob)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->knobsWithViewerUI.push_back(knob);
 }
 
@@ -5002,7 +5003,7 @@ KnobHolder::isInViewerUIKnob(const KnobIPtr& knob) const
 KnobsVec
 KnobHolder::getViewerUIKnobs() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     KnobsVec ret;
     for (std::vector<KnobIWPtr>::const_iterator it = _imp->knobsWithViewerUI.begin(); it != _imp->knobsWithViewerUI.end(); ++it) {
         KnobIPtr k = it->lock();
@@ -5033,7 +5034,7 @@ KnobHolder::isInitializingKnobs() const
 void
 KnobHolder::addKnob(const KnobIPtr& k)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QMutexLocker kk(&_imp->knobsMutex);
     for (KnobsVec::iterator it = _imp->knobs.begin(); it != _imp->knobs.end(); ++it) {
         if (*it == k) {
@@ -5082,21 +5083,21 @@ KnobHolder::removeKnobFromList(const KnobI* knob)
 void
 KnobHolder::setPanelPointer(DockablePanelI* gui)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->settingsPanel = gui;
 }
 
 void
 KnobHolder::discardPanelPointer()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->settingsPanel = 0;
 }
 
 void
 KnobHolder::recreateUserKnobs(bool keepCurPageIndex)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (_imp->settingsPanel) {
         _imp->settingsPanel->recreateUserKnobs(keepCurPageIndex);
         EffectInstance* isEffect = dynamic_cast<EffectInstance*>(this);
@@ -5109,7 +5110,7 @@ KnobHolder::recreateUserKnobs(bool keepCurPageIndex)
 void
 KnobHolder::recreateKnobs(bool keepCurPageIndex)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (_imp->settingsPanel) {
         _imp->settingsPanel->refreshGuiForKnobsChanges(keepCurPageIndex);
         EffectInstance* isEffect = dynamic_cast<EffectInstance*>(this);
@@ -5123,7 +5124,7 @@ void
 KnobHolder::deleteKnob(KnobI* knob,
                        bool alsoDeleteGui)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     KnobsVec knobs;
     {
@@ -5669,7 +5670,7 @@ void
 KnobHolder::onDoEvaluateOnMainThread(bool significant,
                                      bool refreshMetadata)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     evaluate(significant, refreshMetadata);
 }
 
@@ -5684,14 +5685,14 @@ KnobHolder::incrHashAndEvaluate(bool isSignificant,
 void
 KnobHolder::onDoEndChangesOnMainThreadTriggered()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     endChanges();
 }
 
 bool
 KnobHolder::endChanges(bool discardRendering)
 {
-    bool isMT = QThread::currentThread() == qApp->thread();
+    bool isMT = MainThread::isMainThread();
 
     if ( !isMT && !canHandleEvaluateOnChangeInOtherThread() ) {
         Q_EMIT doEndChangesOnMainThread();
@@ -5835,7 +5836,7 @@ KnobHolder::onDoValueChangeOnMainThread(KnobI* knob,
                                         ViewSpec view,
                                         bool originatedFromMT)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     onKnobValueChanged_public(knob, (ValueChangedReasonEnum)reason, time, view, originatedFromMT);
 }
 
@@ -5869,7 +5870,7 @@ KnobHolder::appendValueChange(const KnobIPtr& knob,
 
         foundChange->reason = reason;
         foundChange->originalReason = originalReason;
-        foundChange->originatedFromMainThread = QThread::currentThread() == qApp->thread();
+        foundChange->originatedFromMainThread = MainThread::isMainThread();
         foundChange->refreshGui |= refreshGui;
         foundChange->time = time;
         foundChange->view = view;
@@ -6005,7 +6006,7 @@ void
 KnobHolder::refreshAfterTimeChange(bool isPlayback,
                                    double time)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     AppInstancePtr app = getApp();
     if ( !app || app->isGuiFrozen() ) {
         return;
@@ -6019,7 +6020,7 @@ KnobHolder::refreshAfterTimeChange(bool isPlayback,
 void
 KnobHolder::refreshAfterTimeChangeOnlyKnobsWithTimeEvaluation(double time)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     for (std::size_t i = 0; i < _imp->knobs.size(); ++i) {
         if ( _imp->knobs[i]->evaluateValueChangeOnTimeChange() ) {
             _imp->knobs[i]->onTimeChanged(false, time);
@@ -6031,7 +6032,7 @@ void
 KnobHolder::refreshInstanceSpecificKnobsOnly(bool isPlayback,
                                              double time)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !getApp() || getApp()->isGuiFrozen() ) {
         return;
     }
@@ -6078,7 +6079,7 @@ KnobHolder::getOtherKnobByName(const std::string & name,
 const std::vector<KnobIPtr> &
 KnobHolder::getKnobs() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->knobs;
 }
@@ -6095,7 +6096,7 @@ void
 KnobHolder::slaveAllKnobs(KnobHolder* other,
                           bool restore)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (_imp->isSlave) {
         return;
     }
@@ -6164,7 +6165,7 @@ void
 KnobHolder::beginKnobsValuesChanged_public(ValueChangedReasonEnum reason)
 {
     ///cannot run in another thread.
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     RECURSIVE_ACTION();
     beginKnobsValuesChanged(reason);
@@ -6174,7 +6175,7 @@ void
 KnobHolder::endKnobsValuesChanged_public(ValueChangedReasonEnum reason)
 {
     ///cannot run in another thread.
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     RECURSIVE_ACTION();
     endKnobsValuesChanged(reason);
@@ -6188,7 +6189,7 @@ KnobHolder::onKnobValueChanged_public(KnobI* k,
                                       bool originatedFromMainThread)
 {
     ///cannot run in another thread.
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (!_imp->knobsInitialized) {
         return false;
     }
@@ -6201,7 +6202,7 @@ void
 KnobHolder::checkIfRenderNeeded()
 {
     ///cannot run in another thread.
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( (getRecursionLevel() == 0) ) {
         endChanges();
     }
@@ -6231,7 +6232,7 @@ KnobHolder::checkIfOverlayRedrawNeeded()
 void
 KnobHolder::restoreDefaultValues()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     aboutToRestoreDefaultValues();
 
@@ -6289,7 +6290,7 @@ KnobHolder::isDequeueingValuesSet() const
 bool
 KnobHolder::dequeueValuesSet()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     beginChanges();
     {
         QMutexLocker k(&_imp->overlayRedrawStackMutex);

@@ -49,6 +49,7 @@
 #include "Engine/KnobTypes.h"
 #include "Engine/ViewIdx.h"
 #include "Engine/EngineFwd.h"
+#include "Global/MainThread.h"
 
 
 #define EXPR_RECURSION_LEVEL() KnobHelper::ExprRecursionLevel_RAII __recursionLevelIncrementer__(this)
@@ -687,7 +688,7 @@ Knob<T>::getValue(int dimension,
                   bool clamp)
 {
     assert( !view.isAll() );
-    bool useGuiValues = QThread::currentThread() == qApp->thread();
+    bool useGuiValues = MainThread::isMainThread();
 
 #ifdef DEBUG
     // to put a breakpoint on a getValue on a specific Knob
@@ -818,7 +819,7 @@ Knob<T>::getValueAtTime(double time,
         return T();
     }
 
-    bool useGuiValues = QThread::currentThread() == qApp->thread();
+    bool useGuiValues = MainThread::isMainThread();
     std::string hasExpr = getExpression(dimension);
     if ( !hasExpr.empty() ) {
         T ret;
@@ -1165,7 +1166,7 @@ Knob<T>::setValue(const T & v,
             QMutexLocker kql(&_setValuesQueueMutex);
             _setValuesQueue.push_back(qv);
         }
-        if ( QThread::currentThread() == qApp->thread() ) {
+        if ( MainThread::isMainThread() ) {
             {
                 QMutexLocker k(&_valueMutex);
                 _guiValues[dimension] = v;

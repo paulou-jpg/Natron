@@ -83,6 +83,7 @@
 #include "Engine/StandardPaths.h"
 #include "Engine/ViewerInstance.h"
 #include "Engine/ViewIdx.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -720,7 +721,7 @@ void
 Project::triggerAutoSave()
 {
     ///Should only be called in the main-thread, that is upon user interaction.
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if ( getApp()->isBackground() || !appPTR->isLoaded() || isProjectClosing() ) {
         return;
@@ -1962,7 +1963,7 @@ typedef std::shared_ptr<ResetWatcherArgs> ResetWatcherArgsPtr;
 void
 Project::reset(bool aboutToQuit, bool blocking)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     {
         QMutexLocker k(&_imp->projectClosingMutex);
         _imp->projectClosing = true;
@@ -1989,7 +1990,7 @@ Project::reset(bool aboutToQuit, bool blocking)
 void
 Project::closeProject_blocking(bool aboutToQuit)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     {
         QMutexLocker k(&_imp->projectClosingMutex);
         _imp->projectClosing = true;

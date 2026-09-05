@@ -42,6 +42,7 @@
 #include "Engine/TimeLine.h"
 #include "Engine/TrackerSerialization.h"
 #include "Engine/TLSHolder.h"
+#include "Global/MainThread.h"
 
 #include <ofxNatron.h>
 
@@ -384,7 +385,7 @@ bool
 TrackMarker::setScriptName(const std::string& name)
 {
     ///called on the main-thread only
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if ( name.empty() ) {
         return false;

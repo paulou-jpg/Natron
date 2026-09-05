@@ -35,6 +35,7 @@
 #include "Global/FloatingPointExceptions.h"
 #endif
 #include "Engine/GenericSchedulerThreadWatcher.h"
+#include "Global/MainThread.h"
 
 #ifdef DEBUG
 //#define TRACE_GENERIC_SCHEDULER_THREAD
@@ -222,7 +223,7 @@ GenericSchedulerThreadPrivate::waitForThreadsToQuit_internal(bool allowBlockingF
     }
 
     // This function may NOT be called on the main-thread, because we may deadlock if executeOnMainThread is called OR block the UI.
-    if ( !allowBlockingForMainThread && ( QThread::currentThread() == qApp->thread() ) ) {
+    if ( !allowBlockingForMainThread && ( MainThread::isMainThread() ) ) {
         return false;
     }
 
@@ -244,7 +245,7 @@ GenericSchedulerThreadPrivate::waitForThreadsToQuit_internal(bool allowBlockingF
 void
 GenericSchedulerThread::waitForThreadToQuitQueued_main_thread(bool allowRestart)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     // scoped_ptr
     _imp->blockingOperationWatcher.reset( new GenericSchedulerThreadWatcher(this) );
     QObject::connect( _imp->blockingOperationWatcher.get(), SIGNAL(taskFinished(int,GenericWatcherCallerArgsPtr)), this, SLOT(onWatcherTaskFinishedEmitted()) );
@@ -396,7 +397,7 @@ GenericSchedulerThreadPrivate::waitForAbortToComplete_internal(bool allowBlockin
     }
 
     // This function may NOT be called on the main-thread, because we may deadlock if executeOnMainThread is called OR block the UI.
-    if ( !allowBlockingForMainThread && ( QThread::currentThread() == qApp->thread() ) ) {
+    if ( !allowBlockingForMainThread && ( MainThread::isMainThread() ) ) {
         return false;
     }
 
@@ -417,7 +418,7 @@ GenericSchedulerThreadPrivate::waitForAbortToComplete_internal(bool allowBlockin
 void
 GenericSchedulerThread::waitForAbortToCompleteQueued_main_thread()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->blockingOperationWatcher.reset( new GenericSchedulerThreadWatcher(this) );
     QObject::connect( _imp->blockingOperationWatcher.get(), SIGNAL(taskFinished(int,GenericWatcherCallerArgsPtr)), this, SLOT(onWatcherTaskAbortedEmitted()) );
     _imp->blockingOperationWatcher->scheduleBlockingTask(GenericSchedulerThreadWatcher::eBlockingTaskWaitForAbort);
@@ -607,7 +608,7 @@ GenericSchedulerThread::requestExecutionOnMainThread(const GenericThreadExecOnMa
 void
 GenericSchedulerThread::onExecutionOnMainThreadReceived(const GenericThreadExecOnMainThreadArgsPtr& args)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     executeOnMainThread(args);
 
     QMutexLocker processLocker (&_imp->executingOnMainThreadMutex);

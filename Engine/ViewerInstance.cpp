@@ -65,6 +65,7 @@ CLANG_DIAG_ON(deprecated)
 #include "Engine/UpdateViewerParams.h"
 #include "Engine/Utils.h"
 #include "Engine/ViewIdx.h"
+#include "Global/MainThread.h"
 
 #ifndef M_LN2
 #define M_LN2       0.693147180559945309417232121458176568  /* loge(2)        */
@@ -305,7 +306,7 @@ ViewerInstance::getFrameRange(double *first,
 void
 ViewerInstance::executeDisconnectTextureRequestOnMainThread(int index,bool clearRoD)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (_imp->uiContext) {
         _imp->uiContext->disconnectInputTexture(index, clearRoD);
     }
@@ -568,7 +569,7 @@ ViewerInstance::getViewerArgsAndRenderViewer(SequenceTime time,
 
             if (args[i]) {
                 status[i] = renderViewer_internal(view,
-                                                  QThread::currentThread() == qApp->thread(), // singleThreaded
+                                                  MainThread::isMainThread(), // singleThreaded
                                                   false, // isSequentialRender
                                                   viewerHash,
                                                   canAbort,
@@ -3275,14 +3276,14 @@ ViewerInstance::getViewerCurrentView() const
 void
 ViewerInstance::setActivateInputChangeRequestedFromViewer(bool fromViewer)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->activateInputChangedFromViewer = fromViewer;
 }
 
 bool
 ViewerInstance::isInputChangeRequestedFromViewer() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->activateInputChangedFromViewer;
 }

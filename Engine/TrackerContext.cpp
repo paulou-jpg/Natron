@@ -53,6 +53,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Engine/TrackerContextPrivate.h"
 #include "Engine/TrackerSerialization.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 #define NATRON_TRACKER_REPORT_PROGRESS_DELTA_MS 200
 
@@ -712,7 +713,7 @@ TrackerContext::isMarkerSelected(const TrackMarkerPtr& marker) const
 void
 TrackerContext::endSelection(TrackSelectionReason reason)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     {
         QMutexLocker k(&_imp->trackerContextMutex);
@@ -2011,7 +2012,7 @@ TrackScheduler::threadLoopOnce(const GenericThreadStartArgsPtr& inArgs)
 void
 TrackScheduler::doRenderCurrentFrameForViewer(ViewerInstance* viewer)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     viewer->renderCurrentFrame(true);
 }
 

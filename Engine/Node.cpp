@@ -101,6 +101,7 @@
 #include "Engine/ViewIdx.h"
 #include "Engine/ViewerInstance.h"
 #include "Engine/WriteNode.h"
+#include "Global/MainThread.h"
 
 #ifndef M_LN2
 #define M_LN2       0.693147180559945309417232121458176568  /* loge(2)        */
@@ -554,7 +555,7 @@ Node::getOrRenderLastStrokeImage(unsigned int mipmapLevel,
 void
 Node::refreshAcceptedBitDepths()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->effect->addSupportedBitDepth(&_imp->supportedDepths);
 }
 
@@ -593,7 +594,7 @@ bool
 Node::setStreamWarningInternal(StreamWarningEnum warning,
                                const QString& message)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     std::map<Node::StreamWarningEnum, QString>::iterator found = _imp->streamWarnings.find(warning);
     if ( found == _imp->streamWarnings.end() ) {
         _imp->streamWarnings.insert( std::make_pair(warning, message) );
@@ -635,7 +636,7 @@ Node::setStreamWarnings(const std::map<StreamWarningEnum, QString>& warnings)
 void
 Node::clearStreamWarning(StreamWarningEnum warning)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     std::map<Node::StreamWarningEnum, QString>::iterator found = _imp->streamWarnings.find(warning);
     if ( ( found == _imp->streamWarnings.end() ) || found->second.isEmpty() ) {
         return;
@@ -647,7 +648,7 @@ Node::clearStreamWarning(StreamWarningEnum warning)
 void
 Node::getStreamWarnings(std::map<StreamWarningEnum, QString>* warnings) const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     *warnings = _imp->streamWarnings;
 }
 
@@ -787,7 +788,7 @@ Node::computeHashInternal()
         return false;
     }
     ///Always called in the main thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (!_imp->inputsInitialized) {
         qDebug() << "Node::computeHash(): inputs not initialized";
     }
@@ -961,7 +962,7 @@ Node::removeAllImagesFromCache(bool blocking)
 void
 Node::doComputeHashOnMainThread()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     computeHash();
 }
 
@@ -983,7 +984,7 @@ Node::loadKnobs(const NodeSerialization & serialization,
                 bool updateKnobGui)
 {
     ///Only called from the main thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(_imp->knobsInitialized);
     if ( serialization.isNull() ) {
         return;
@@ -1244,7 +1245,7 @@ void
 Node::setKnobsAge(U64 newAge)
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     bool changed;
     {
@@ -2418,7 +2419,7 @@ Node::initializeKnobs(bool loadingSerialization)
 
     _imp->effect->beginChanges();
 
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(!_imp->knobsInitialized);
 
     ///For groups, declare the plugin knobs after the node knobs because we want to use the Node page
@@ -2632,7 +2633,7 @@ void
 Node::setEffect(const EffectInstancePtr& effect)
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->effect = effect;
     _imp->effect->initializeData();
 
@@ -3030,7 +3031,7 @@ Node::activate(const std::list<NodePtr> & outputsToRestore,
                bool triggerRender)
 {
     ///Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !_imp->effect || isActivated() ) {
         return;
     }
@@ -3956,7 +3957,7 @@ void
 Node::purgeAllInstancesCaches()
 {
     ///Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(_imp->effect);
     _imp->effect->purgeCaches();
 }
@@ -4169,7 +4170,7 @@ Node::onAllKnobsSlaved(bool isSlave,
                        KnobHolder* master)
 {
     ///Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if (isSlave) {
         EffectInstance* effect = dynamic_cast<EffectInstance*>(master);
@@ -4280,7 +4281,7 @@ void
 Node::onMasterNodeDeactivated()
 {
     ///Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (!_imp->effect) {
         return;
     }
@@ -4609,7 +4610,7 @@ Node::setPluginIDAndVersionForGui(const std::list<std::string>& grouping,
                                   const std::string& pluginIconFilePath,
                                   unsigned int version)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     NodeGuiIPtr nodeGui = getNodeGui();
 
     setPyPlugEdited(false);
@@ -4700,7 +4701,7 @@ Node::pushUndoCommand(const UndoCommandPtr& command)
 const std::vector<std::string>&
 Node::getCreatedViews() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->createdViews;
 }
@@ -4718,7 +4719,7 @@ Node::refreshCreatedViews(bool silent)
 void
 Node::refreshCreatedViews(KnobI* knob, bool silent)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     KnobString* availableViewsKnob = dynamic_cast<KnobString*>(knob);
     if (!availableViewsKnob) {
@@ -4799,7 +4800,7 @@ Node::setHideInputsKnobValue(bool hidden)
 void
 Node::onRefreshIdentityStateRequestReceived()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( (_imp->refreshIdentityStateRequestsCount == 0) || !_imp->effect ) {
         //was already processed
         return;
@@ -4856,7 +4857,7 @@ Node::onRefreshIdentityStateRequestReceived()
 void
 Node::refreshIdentityState()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if ( !_imp->guiPointer.lock() ) {
         return;
@@ -4904,7 +4905,7 @@ Node::onEffectKnobValueChanged(KnobI* what,
         }
     } else if ( ( what == _imp->disableNodeKnob.lock().get() ) && !_imp->isMultiInstance && !_imp->multiInstanceParent.lock() ) {
         Q_EMIT disabledKnobToggled( _imp->disableNodeKnob.lock()->getValue() );
-        if ( QThread::currentThread() == qApp->thread() ) {
+        if ( MainThread::isMainThread() ) {
             getApp()->redrawAllViewers();
         }
         NodeGroup* isGroup = dynamic_cast<NodeGroup*>( _imp->effect.get() );
@@ -5376,7 +5377,7 @@ Node::hasAtLeastOneChannelToProcess() const
 void
 Node::replaceCustomDataInlabel(const QString & data)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     KnobStringPtr labelKnob = _imp->nodeLabelKnob.lock();
     if (!labelKnob) {
         return;
@@ -5473,7 +5474,7 @@ Node::setNodeDisabled(bool disabled)
 void
 Node::showKeyframesOnTimeline(bool emitSignal)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( _imp->keyframesDisplayedOnTimeline || appPTR->isBackground() ) {
         return;
     }
@@ -5486,7 +5487,7 @@ Node::showKeyframesOnTimeline(bool emitSignal)
 void
 Node::hideKeyframesFromTimeline(bool emitSignal)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !_imp->keyframesDisplayedOnTimeline || appPTR->isBackground() ) {
         return;
     }
@@ -5499,7 +5500,7 @@ Node::hideKeyframesFromTimeline(bool emitSignal)
 bool
 Node::areKeyframesVisibleOnTimeline() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->keyframesDisplayedOnTimeline;
 }
@@ -5718,7 +5719,7 @@ Node::isNodeRendering() const
 void
 Node::dequeueActions()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     ///Flag that the node is dequeuing.
     {
@@ -6085,7 +6086,7 @@ bool
 Node::refreshAllInputRelatedData(bool /*canChangeValues*/,
                                  const std::vector<NodeWPtr>& inputs)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     RefreshingInputData_RAII _refreshingflag( _imp.get() );
     bool hasChanged = false;
     hasChanged |= refreshDraftFlagInternal(inputs);
@@ -6383,7 +6384,7 @@ void
 Node::setNodeGuiPointer(const NodeGuiIPtr& gui)
 {
     assert( !_imp->guiPointer.lock() );
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->guiPointer = gui;
 }
 
@@ -6462,7 +6463,7 @@ Node::isSettingsPanelVisible() const
 void
 Node::attachRotoItem(const RotoDrawableItemPtr& stroke)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->paintStroke = stroke;
     _imp->useAlpha0ToConvertFromRGBToRGBA = true;
     setProcessChannelsValues(true, true, true, true);
@@ -6471,7 +6472,7 @@ Node::attachRotoItem(const RotoDrawableItemPtr& stroke)
 void
 Node::setUseAlpha0ToConvertFromRGBToRGBA(bool use)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->useAlpha0ToConvertFromRGBToRGBA = use;
 }
 

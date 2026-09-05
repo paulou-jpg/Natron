@@ -30,6 +30,7 @@
 #include "Engine/EffectInstance.h"
 #include "Engine/KnobTypes.h"
 #include "Engine/NodeGuiI.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -295,7 +296,7 @@ void
 Node::addPositionInteract(const KnobDoublePtr& position,
                           const KnobBoolPtr& interactive)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( appPTR->isBackground() ) {
         return;
     }
@@ -326,7 +327,7 @@ Node::addTransformInteract(const KnobDoublePtr& translate,
                            const KnobBoolPtr& invert,
                            const KnobBoolPtr& interactive)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( appPTR->isBackground() ) {
         return;
     }
@@ -372,7 +373,7 @@ Node::addCornerPinInteract(const KnobDoublePtr& from1,
                            const KnobBoolPtr& invert,
                            const KnobBoolPtr& interactive)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( appPTR->isBackground() ) {
         return;
     }

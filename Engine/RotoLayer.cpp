@@ -54,6 +54,7 @@
 #include "Engine/TimeLine.h"
 #include "Engine/Transform.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 #define kMergeOFXParamOperation "operation"
 #define kBlurCImgParamSize "size"
@@ -245,7 +246,7 @@ RotoLayer::addItem(const RotoItemPtr & item,
                    bool declareToPython )
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     RotoLayerPtr parentLayer = item->getParentLayer();
     if (parentLayer) {
         parentLayer->removeItem(item);
@@ -267,7 +268,7 @@ RotoLayer::insertItem(const RotoItemPtr & item,
                       int index)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(index >= 0);
 
     RotoLayerPtr parentLayer = item->getParentLayer();
@@ -303,7 +304,7 @@ void
 RotoLayer::removeItem(const RotoItemPtr& item)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     {
         QMutexLocker l(&itemMutex);
         for (RotoItems::iterator it = _imp->items.begin(); it != _imp->items.end(); ++it) {
@@ -343,7 +344,7 @@ const RotoItems &
 RotoLayer::getItems() const
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->items;
 }

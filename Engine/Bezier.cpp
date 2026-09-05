@@ -55,6 +55,7 @@
 #include "Engine/CoonsRegularization.h"
 #include "Engine/ViewIdx.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 #define kMergeOFXParamOperation "operation"
 #define kBlurCImgParamSize "size"
@@ -1095,7 +1096,7 @@ Bezier::addControlPoint(double x,
                         double time)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if ( isCurveFinished() ) {
         return BezierCPPtr();
@@ -1167,7 +1168,7 @@ Bezier::addControlPointAfterIndex(int index,
                                   double t)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     BezierPtr this_shared = std::dynamic_pointer_cast<Bezier>( shared_from_this() );
     assert(this_shared);
@@ -1384,7 +1385,7 @@ Bezier::isPointOnCurve(double x,
                        bool* feather) const
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     double time = getContext()->getTimelineCurrentTime();
     Transform::Matrix3x3 transform;
@@ -1466,7 +1467,7 @@ void
 Bezier::setCurveFinished(bool finished)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if (!_imp->isOpenBezier) {
         QMutexLocker l(&itemMutex);
@@ -1491,7 +1492,7 @@ void
 Bezier::removeControlPointByIndex(int index)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
 
     {
@@ -1528,7 +1529,7 @@ Bezier::movePointByIndexInternal(bool useGuiCurve,
                                  bool onlyFeather)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     bool rippleEdit = getContext()->isRippleEditEnabled();
     bool autoKeying = getContext()->isAutoKeyingEnabled();
@@ -1710,7 +1711,7 @@ Bezier::setPointByIndexInternal(bool useGuiCurve,
                                 double y)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     Transform::Matrix3x3 trans, invTrans;
     getTransformAtTime(time, &trans);
@@ -1804,7 +1805,7 @@ Bezier::moveBezierPointInternal(BezierCP* cpParam,
                                 bool onlyFeather)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     bool autoKeying = getContext()->isAutoKeyingEnabled();
     bool featherLink = getContext()->isFeatherLinkEnabled();
@@ -2066,7 +2067,7 @@ Bezier::setPointAtIndexInternal(bool setLeft,
                                 double ry)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     bool autoKeying = getContext()->isAutoKeyingEnabled();
     bool rippleEdit = getContext()->isRippleEditEnabled();
     bool keySet = false;
@@ -2253,7 +2254,7 @@ void
 Bezier::removeFeatherAtIndex(int index)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert( useFeatherPoints() );
 
 
@@ -2282,7 +2283,7 @@ Bezier::smoothOrCuspPointAtIndex(bool isSmooth,
                                  const std::pair<double, double>& pixelScale)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     bool keySet = false;
     bool autoKeying = getContext()->isAutoKeyingEnabled();
     bool rippleEdit = getContext()->isRippleEditEnabled();
@@ -2354,7 +2355,7 @@ void
 Bezier::setKeyframe(double time)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     {
         QMutexLocker l(&itemMutex);
@@ -2402,7 +2403,7 @@ void
 Bezier::removeKeyframe(double time)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     {
         QMutexLocker l(&itemMutex);
 
@@ -2438,7 +2439,7 @@ void
 Bezier::removeAnimation()
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     double time = getContext()->getTimelineCurrentTime();
     {
@@ -2469,7 +2470,7 @@ void
 Bezier::moveKeyframe(double oldTime,
                      double newTime)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (oldTime == newTime) {
         return;
     }
@@ -2928,7 +2929,7 @@ const std::list<BezierCPPtr> &
 Bezier::getControlPoints() const
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->points;
 }
@@ -2952,7 +2953,7 @@ const std::list<BezierCPPtr> &
 Bezier::getFeatherPoints() const
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->featherPoints;
 }
@@ -2973,7 +2974,7 @@ Bezier::isNearbyControlPoint(double x,
                              int* index) const
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     double time = getContext()->getTimelineCurrentTime();
     Transform::Matrix3x3 transform;
     getTransformAtTime(time, &transform);
@@ -3114,7 +3115,7 @@ Bezier::controlPointsWithinRect(double l,
     std::list<std::pair<BezierCPPtr, BezierCPPtr> > ret;
 
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QMutexLocker locker(&itemMutex);
     double time = getContext()->getTimelineCurrentTime();
     int i = 0;
@@ -3514,7 +3515,7 @@ Bezier::isFeatherPolygonClockwiseOriented(bool useGuiCurve,
 void
 Bezier::setAutoOrientationComputation(bool autoCompute)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->autoRecomputeOrientation = autoCompute;
 }
 

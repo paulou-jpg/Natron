@@ -70,6 +70,7 @@ CLANG_DIAG_ON(unknown-pragmas)
 #include "Engine/ReadNode.h"
 #include "Engine/Settings.h"
 #include "Engine/WriteNode.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -217,21 +218,21 @@ AppInstance::~AppInstance()
 const ProjectBeingLoadedInfo&
 AppInstance::getProjectBeingLoadedInfo() const
 {
-    assert(QThread::currentThread() == qApp->thread());
+    assert(MainThread::isMainThread());
     return _imp->projectBeingLoaded;
 }
 
 void
 AppInstance::setProjectBeingLoadedInfo(const ProjectBeingLoadedInfo& info)
 {
-    assert(QThread::currentThread() == qApp->thread());
+    assert(MainThread::isMainThread());
     _imp->projectBeingLoaded = info;
 }
 
 const std::list<NodePtr>&
 AppInstance::getNodesBeingCreated() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->_creatingNodeQueue;
 }

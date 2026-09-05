@@ -42,6 +42,7 @@
 #include "Engine/KnobTypes.h"
 #include "Engine/Transform.h" // Point3D
 #include "Engine/ViewIdx.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -421,7 +422,7 @@ BezierCP::removeKeyframe(bool useGuiCurves,
                          double time)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     ///if the keyframe count reaches 0 update the "static" values which may be fetched
     if (_imp->curveX->getKeyFramesCount() == 1) {
@@ -774,7 +775,7 @@ BezierCP::cuspPoint(bool useGuiCurves,
                     const std::pair<double, double>& pixelScale)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     double x, y, leftX, leftY, rightX, rightY;
     getPositionAtTime(useGuiCurves, time, view, &x, &y);
@@ -815,7 +816,7 @@ BezierCP::smoothPoint(bool useGuiCurves,
                       const std::pair<double, double>& pixelScale)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     Transform::Matrix3x3 transform;
     getBezier()->getTransformAtTime(time, &transform);

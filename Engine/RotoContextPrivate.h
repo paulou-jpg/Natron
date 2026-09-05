@@ -64,6 +64,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Engine/Transform.h"
 #include "Engine/ViewIdx.h"
 #include "Engine/EngineFwd.h"
+#include "Global/MainThread.h"
 
 #define ROTO_DEFAULT_OPACITY 1.
 #define ROTO_DEFAULT_FEATHER 1.5
@@ -2175,7 +2176,7 @@ public:
     void incrementRotoAge()
     {
         ///MT-safe: only called on the main-thread
-        assert( QThread::currentThread() == qApp->thread() );
+        assert( MainThread::isMainThread() );
 
         QMutexLocker l(&rotoContextMutex);
         ++age;

@@ -33,6 +33,7 @@
 #include "Engine/GroupOutput.h"
 #include "Engine/NodeGroup.h"
 #include "Engine/NodeSerialization.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -146,7 +147,7 @@ const std::string &
 Node::getScriptName() const
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QMutexLocker l(&_imp->nameMutex);
 
     return _imp->scriptName;
@@ -204,7 +205,7 @@ Node::getFullyQualifiedName() const
 void
 Node::setLabel(const std::string& label)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     {
         QMutexLocker k(&_imp->nameMutex);
@@ -223,7 +224,7 @@ Node::setLabel(const std::string& label)
 const std::string&
 Node::getLabel() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QMutexLocker k(&_imp->nameMutex);
 
     return _imp->label;
