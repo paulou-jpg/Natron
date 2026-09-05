@@ -52,6 +52,70 @@ necessary by ``#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)``. Prefer, in order:
 3. **A localized ``#if QT_VERSION`` block** only when a shim is impractical.
 
 
+Measured surface
+----------------
+
+Counted from ``RB-2.6``. The APIs Qt 6 removed outright are a much smaller set
+than the chapter's prose implies:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 12 12 12 34
+
+   * - Removed API
+     - Total
+     - Engine
+     - Gui
+     - Replacement
+   * - ``QRegExp``
+     - 38
+     - 14
+     - 24
+     - ``QRegularExpression``
+   * - ``QDesktopWidget``
+     - 9
+     - 0
+     - 9
+     - ``QScreen``
+   * - ``QVariant::Type``
+     - 1
+     - 1
+     - 0
+     - ``QMetaType``
+   * - ``setMargin``
+     - 1
+     - 0
+     - 1
+     - ``setContentsMargins``
+
+**About fifty call sites in total**, and no ``QLinkedList``, ``QTextCodec``,
+``Qt::MidButton``, ``QPalette::Background``/``Foreground``, ``QString::null`` or
+``QWheelEvent::delta`` anywhere in the tree. Whatever cleanup happened
+previously has already removed the long tail.
+
+.. warning::
+
+   ``QRegExp`` is the one that is not a rename. ``QRegularExpression`` has a
+   different API — ``match()`` returning a result object rather than
+   ``indexIn``/``cap`` — *and* different default semantics: ``QRegExp`` matches
+   a substring by default while ``QRegularExpression::match`` also does, but
+   ``exactMatch()`` has no direct equivalent and wildcard patterns need
+   ``QRegularExpression::wildcardToRegularExpression``. Each of the 38 sites
+   has to be read.
+
+Where the time actually goes
+----------------------------
+
+The plan estimates three to six months for this step. Fifty call sites is days.
+The estimate is really for the two canvases — the ``QGraphicsView`` node graph
+and the ``QOpenGLWidget`` viewer moving to RHI — which are rewrites rather than
+migrations, and are listed in this plan as separate items precisely because they
+are not Qt 6 work: they are worth doing whether or not the toolkit version
+changes.
+
+Splitting the estimate accordingly makes the schedule honest: finishing Qt 6 is
+a short task gated on the bindings, and the canvases are a project.
+
 Concrete work items (audited)
 -----------------------------
 
