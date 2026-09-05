@@ -27,6 +27,7 @@
 #include "PythonUtils.h"
 
 #include <cstdlib>
+#include <iostream>
 #include <vector>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -44,6 +45,12 @@
 #include "../Global/StrUtils.h"
 
 NATRON_NAMESPACE_ENTER
+
+#if PY_VERSION_HEX >= 0x03080000
+// Set by setupPythonEnv() and consumed by initializePython3(), which passes it
+// through PyConfig rather than the deprecated Py_SetPythonHome().
+static std::wstring gPythonHome;
+#endif
 NATRON_PYTHON_NAMESPACE_ENTER
 
 static bool fileExists(const std::string& path)
@@ -148,9 +155,15 @@ void setupPythonEnv(const std::string& binPath)
 
     if ( !pythonHome.empty() ) {
 #     if defined(NATRON_CONFIG_SNAPSHOT) || defined(DEBUG)
-        printf( "Py_SetPythonHome(\"%s\")\n", pythonHome.c_str() );
+        printf( "python home is \"%s\"\n", pythonHome.c_str() );
 #     endif
+#     if PY_VERSION_HEX >= 0x03080000
+        // Py_SetPythonHome() is deprecated since 3.11 and does nothing useful
+        // in 3.13. Remember the value and hand it to PyConfig instead.
+        gPythonHome = pythonHomeW;
+#     else
         Py_SetPythonHome( const_cast<wchar_t*>( pythonHomeW.c_str() ) );
+#     endif
     }
 
 
@@ -243,18 +256,53 @@ PyObject* initializePython3(const std::vector<wchar_t*>& commandLineArgsWide)
     // Must be done before Py_Initialize (see doc of Py_Initialize)
     //
 
-    Py_SetProgramName(commandLineArgsWide[0]);
-
+#if PY_VERSION_HEX >= 0x03080000
     /////////////////////////////////////////
-    // Py_Initialize
+    // Py_InitializeFromConfig
     /////////////////////////////////////////
     //
-    // Initialize the Python interpreter. In an application embedding Python, this should be called before using any other Python/C API functions; with the exception of Py_SetProgramName(), Py_SetPythonHome() and Py_SetPath().
+    // Py_SetProgramName(), Py_SetPythonHome() and PySys_SetArgv() are all
+    // deprecated (3.11 and 3.13) and no longer configure the interpreter
+    // reliably: on 3.13 they leave the import system in a state where
+    // PyImport_ImportModule("__main__") returns null. PyConfig is the supported
+    // way to do this from an embedding application.
+#if defined(NATRON_CONFIG_SNAPSHOT) || defined(DEBUG)
+    printf("Py_InitializeFromConfig()\n");
+#endif
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+
+    PyStatus status = PyConfig_SetString(&config, &config.program_name, commandLineArgsWide[0]);
+    if ( !PyStatus_Exception(status) && !gPythonHome.empty() ) {
+        status = PyConfig_SetString( &config, &config.home, gPythonHome.c_str() );
+    }
+    if ( !PyStatus_Exception(status) && !commandLineArgsWide.empty() ) {
+        // Keeps relative module imports working, as PySys_SetArgv() did.
+        status = PyConfig_SetArgv( &config,
+                                   (Py_ssize_t)commandLineArgsWide.size(),
+                                   const_cast<wchar_t**>(&commandLineArgsWide[0]) );
+    }
+    if ( !PyStatus_Exception(status) ) {
+        status = Py_InitializeFromConfig(&config);
+    }
+    PyConfig_Clear(&config);
+
+    if ( PyStatus_Exception(status) ) {
+        std::cerr << "Fatal: could not initialize the Python interpreter";
+        if (status.err_msg) {
+            std::cerr << ": " << status.err_msg;
+        }
+        std::cerr << std::endl;
+
+        return 0;
+    }
+#else
+    Py_SetProgramName(commandLineArgsWide[0]);
+
 #if defined(NATRON_CONFIG_SNAPSHOT) || defined(DEBUG)
     printf("Py_Initialize()\n");
 #endif
     Py_Initialize();
-    // pythonHome must be const, so that the c_str() pointer is never invalidated
 
     // Py_SetPath clears sys.prefix and sys.exec_prefix
     // https://github.com/NatronGitHub/Natron/issues/696
@@ -265,13 +313,18 @@ PyObject* initializePython3(const std::vector<wchar_t*>& commandLineArgsWide)
     PySys_SetObject(const_cast<char*>("exec_prefix"), exec_prefix);
     Py_XDECREF(exec_prefix);
 
-    /////////////////////////////////////////
-    // PySys_SetArgv
-    /////////////////////////////////////////
-    //
     PySys_SetArgv( commandLineArgsWide.size(), const_cast<wchar_t**>(&commandLineArgsWide[0]) ); /// relative module import
+#endif // PY_VERSION_HEX >= 0x03080000
 
     PyObject* mainModule = PyImport_ImportModule("__main__"); //create main module , new ref
+    if (!mainModule) {
+        // Callers dereference this; failing loudly beats a segfault inside
+        // PyModule_GetDict().
+        PyErr_Print();
+        std::cerr << "Fatal: could not import Python's __main__ module." << std::endl;
+
+        return 0;
+    }
 
     //See https://web.archive.org/web/20150918224620/http://wiki.blender.org/index.php/Dev:2.4/Source/Python/API/Threads
     //Python releases the GIL every 100 virtual Python instructions, we do not want that to happen in the middle of an expression.
