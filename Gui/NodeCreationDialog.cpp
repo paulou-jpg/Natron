@@ -37,8 +37,7 @@ CLANG_DIAG_OFF(uninitialized)
 #include <QApplication>
 #include <QListView>
 #include <QSettings>
-#include <QDesktopWidget>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QApplication>
 #include <QStringListModel>
 CLANG_DIAG_ON(deprecated)
@@ -151,7 +150,7 @@ CompleterLineEdit::filterText(const QString & txt)
             pattern.push_back(txt[i]);
         }
         pattern.push_back( QLatin1Char('*') );
-        QRegExp expr(pattern, Qt::CaseInsensitive, QRegExp::WildcardUnix);
+        QRegularExpression expr( QRegularExpression::wildcardToRegularExpression(pattern), QRegularExpression::CaseInsensitiveOption );
 
 #ifdef NODE_TAB_DIALOG_USE_MATCHED_LENGTH
         std::map<int, QStringList> matchOrdered;

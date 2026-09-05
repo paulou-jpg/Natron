@@ -55,45 +55,47 @@ Variant::save(Archive & ar,
               const unsigned int version) const
 {
     Q_UNUSED(version);
-    QVariant::Type t = type();
+    // QVariant::Type was removed in Qt 6; QMetaType is the spelling that
+    // works in both, and the enumerators are the same values in Qt 5.
+    QMetaType::Type t = static_cast<QMetaType::Type>( type() );
     std::string typeStr;
     switch (t) {
-    case QVariant::Bool: {
+    case QMetaType::Bool: {
         bool v = toBool();
         typeStr = "bool";
         ar & ::boost::serialization::make_nvp("Type", typeStr);
         ar & ::boost::serialization::make_nvp("Value", v);
         break;
     }
-    case QVariant::Int: {
+    case QMetaType::Int: {
         int v = toInt();
         typeStr = "int";
         ar & ::boost::serialization::make_nvp("Type", typeStr);
         ar & ::boost::serialization::make_nvp("Value", v);
         break;
     }
-    case QVariant::UInt: {
+    case QMetaType::UInt: {
         int v = toUInt();
         typeStr = "uint";
         ar & ::boost::serialization::make_nvp("Type", typeStr);
         ar & ::boost::serialization::make_nvp("Value", v);
         break;
     }
-    case QVariant::Double: {
+    case QMetaType::Double: {
         double v = toDouble();
         typeStr = "double";
         ar & ::boost::serialization::make_nvp("Type", typeStr);
         ar & ::boost::serialization::make_nvp("Value", v);
         break;
     }
-    case QVariant::String: {
+    case QMetaType::String: {
         typeStr = "string";
         ar & ::boost::serialization::make_nvp("Type", typeStr);
         std::string str = toString().toStdString();
         ar & ::boost::serialization::make_nvp("Value", str);
         break;
     }
-    case QVariant::StringList: {
+    case QMetaType::StringList: {
         typeStr = "stringlist";
         ar & ::boost::serialization::make_nvp("Type", typeStr);
         std::list<std::string> list;
