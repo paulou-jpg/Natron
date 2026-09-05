@@ -118,25 +118,40 @@ jobs:
               continue
             fi
             failed="${failed} $(basename ${x})"
-            # A load failure only reports the Windows error string, which does
-            # not say which import is missing. Dump what the plug-in needs and
-            # what the installer actually ships so the two can be compared.
-            echo "::group::$(basename ${x}): imports not present in the bundle"
-            for dll in $(objdump -p "${x}" | sed -n 's/^\s*DLL Name:\s*//p' | sort -u); do
-              if [ ! -f "${INSTALLER_DIR}/bin/${dll}" ]; then
-                echo "  MISSING FROM BUNDLE: ${dll}  (system: $(ls /mingw64/bin/${dll} 2>/dev/null || echo 'not in /mingw64/bin'))"
-              fi
-            done
+            # A load failure only reports the Windows error string, which names
+            # neither the DLL nor the symbol. Print the plug-in's direct imports
+            # in full -- printing only the anomalies makes "nothing wrong" and
+            # "the parse failed" look identical.
+            imports=$(objdump -p "${x}" | grep -i 'DLL Name:' | sed 's/.*DLL Name: *//' | tr -d '\r' | sort -u)
+            echo "::group::$(basename ${x}): $(echo "${imports}" | grep -c .) direct imports"
+            echo "${imports}" | sed 's/^/  /'
             echo "::endgroup::"
-            echo "::group::$(basename ${x}): bundled vs installed versions"
-            for dll in $(objdump -p "${x}" | sed -n 's/^\s*DLL Name:\s*//p' | sort -u); do
-              b="${INSTALLER_DIR}/bin/${dll}"; m="/mingw64/bin/${dll}"
-              if [ -f "$b" ] && [ -f "$m" ] && ! cmp -s "$b" "$m"; then
-                echo "  DIFFERS: ${dll} (bundled $(stat -c %s "$b") bytes, installed $(stat -c %s "$m") bytes)"
-              fi
+            echo "::group::$(basename ${x}): imports missing from the bundle"
+            for dll in ${imports}; do
+              [ -f "${INSTALLER_DIR}/bin/${dll}" ] || echo "  MISSING: ${dll}"
             done
             echo "::endgroup::"
           done
+
+          # ERROR_PROC_NOT_FOUND means a DLL loaded but lacked a symbol, so the
+          # suspect is a bundled library whose version differs from the one the
+          # plug-ins were compiled against. Natron ships ffmpeg from
+          # ffmpeg-gpl2 while msys2 also has its own copy in /mingw64/bin under
+          # the same names, which would produce exactly this.
+          if [ -n "${failed}" ]; then
+            echo "::group::bundled DLLs that differ from the msys2 copy of the same name"
+            for b in ${INSTALLER_DIR}/bin/*.dll; do
+              n=$(basename "$b")
+              if [ -f "/mingw64/bin/$n" ] && ! cmp -s "$b" "/mingw64/bin/$n"; then
+                echo "  DIFFERS: $n  bundled=$(stat -c %s "$b")  msys2=$(stat -c %s "/mingw64/bin/$n")"
+              fi
+            done
+            echo "::endgroup::"
+            echo "::group::ffmpeg-family DLLs present in both trees"
+            ls -la /mingw64/bin/{avcodec,avformat,avutil,swscale,swresample,avfilter}*.dll 2>/dev/null || echo "  none in /mingw64/bin"
+            ls -la /mingw64/ffmpeg-gpl2/bin/*.dll 2>/dev/null | head -20 || echo "  none in ffmpeg-gpl2"
+            echo "::endgroup::"
+          fi
           if [ -n "${failed}" ]; then
             echo "Plug-ins that failed to load:${failed}"
             exit 1
@@ -256,25 +271,40 @@ jobs:
               continue
             fi
             failed="${failed} $(basename ${x})"
-            # A load failure only reports the Windows error string, which does
-            # not say which import is missing. Dump what the plug-in needs and
-            # what the installer actually ships so the two can be compared.
-            echo "::group::$(basename ${x}): imports not present in the bundle"
-            for dll in $(objdump -p "${x}" | sed -n 's/^\s*DLL Name:\s*//p' | sort -u); do
-              if [ ! -f "${INSTALLER_DIR}/bin/${dll}" ]; then
-                echo "  MISSING FROM BUNDLE: ${dll}  (system: $(ls /mingw64/bin/${dll} 2>/dev/null || echo 'not in /mingw64/bin'))"
-              fi
-            done
+            # A load failure only reports the Windows error string, which names
+            # neither the DLL nor the symbol. Print the plug-in's direct imports
+            # in full -- printing only the anomalies makes "nothing wrong" and
+            # "the parse failed" look identical.
+            imports=$(objdump -p "${x}" | grep -i 'DLL Name:' | sed 's/.*DLL Name: *//' | tr -d '\r' | sort -u)
+            echo "::group::$(basename ${x}): $(echo "${imports}" | grep -c .) direct imports"
+            echo "${imports}" | sed 's/^/  /'
             echo "::endgroup::"
-            echo "::group::$(basename ${x}): bundled vs installed versions"
-            for dll in $(objdump -p "${x}" | sed -n 's/^\s*DLL Name:\s*//p' | sort -u); do
-              b="${INSTALLER_DIR}/bin/${dll}"; m="/mingw64/bin/${dll}"
-              if [ -f "$b" ] && [ -f "$m" ] && ! cmp -s "$b" "$m"; then
-                echo "  DIFFERS: ${dll} (bundled $(stat -c %s "$b") bytes, installed $(stat -c %s "$m") bytes)"
-              fi
+            echo "::group::$(basename ${x}): imports missing from the bundle"
+            for dll in ${imports}; do
+              [ -f "${INSTALLER_DIR}/bin/${dll}" ] || echo "  MISSING: ${dll}"
             done
             echo "::endgroup::"
           done
+
+          # ERROR_PROC_NOT_FOUND means a DLL loaded but lacked a symbol, so the
+          # suspect is a bundled library whose version differs from the one the
+          # plug-ins were compiled against. Natron ships ffmpeg from
+          # ffmpeg-gpl2 while msys2 also has its own copy in /mingw64/bin under
+          # the same names, which would produce exactly this.
+          if [ -n "${failed}" ]; then
+            echo "::group::bundled DLLs that differ from the msys2 copy of the same name"
+            for b in ${INSTALLER_DIR}/bin/*.dll; do
+              n=$(basename "$b")
+              if [ -f "/mingw64/bin/$n" ] && ! cmp -s "$b" "/mingw64/bin/$n"; then
+                echo "  DIFFERS: $n  bundled=$(stat -c %s "$b")  msys2=$(stat -c %s "/mingw64/bin/$n")"
+              fi
+            done
+            echo "::endgroup::"
+            echo "::group::ffmpeg-family DLLs present in both trees"
+            ls -la /mingw64/bin/{avcodec,avformat,avutil,swscale,swresample,avfilter}*.dll 2>/dev/null || echo "  none in /mingw64/bin"
+            ls -la /mingw64/ffmpeg-gpl2/bin/*.dll 2>/dev/null | head -20 || echo "  none in ffmpeg-gpl2"
+            echo "::endgroup::"
+          fi
           if [ -n "${failed}" ]; then
             echo "Plug-ins that failed to load:${failed}"
             exit 1
