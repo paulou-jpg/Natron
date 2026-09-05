@@ -591,6 +591,13 @@ public:
 
     void setNodeGuiPointer(const NodeGuiIPtr& gui);
 
+    /**
+     * @brief Forget the NodeGui set by setNodeGuiPointer(). Called by ~NodeGui()
+     * because the NodeGui may be destroyed by Qt while shared_ptrs to it still
+     * exist, which would otherwise leave getNodeGui() returning freed memory.
+     **/
+    void discardNodeGuiPointer();
+
     NodeGuiIPtr getNodeGui() const;
 
     bool isSettingsPanelVisible() const;
