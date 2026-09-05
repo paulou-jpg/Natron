@@ -458,7 +458,14 @@ DockablePanel::DockablePanel(Gui* gui,
 
 DockablePanel::~DockablePanel()
 {
-    
+    // The panel adds itself to Gui's list of opened panels
+    // (Gui::addVisibleDockablePanel) but only removes itself when it is closed
+    // through the UI. A panel destroyed without being closed first would leave
+    // a dangling pointer in that list, and Gui::getNodesEntitledForOverlays()
+    // dynamic_casts every entry on each viewer repaint.
+    if (_imp->_gui) {
+        _imp->_gui->removeVisibleDockablePanel(this);
+    }
 }
 
 bool

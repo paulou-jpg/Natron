@@ -210,6 +210,18 @@ NodeGui::NodeGui(QGraphicsItem *parent)
 
 NodeGui::~NodeGui()
 {
+    // NodeGui is owned by a shared_ptr, but being a QGraphicsItem it is also
+    // owned by its parent item and by the scene, so Qt can delete it while the
+    // shared_ptr's control block still reports it alive. Node::getNodeGui()
+    // would then hand out a pointer to freed memory, and the viewer overlay
+    // code dynamic_casts that pointer -- faulting inside __dynamic_cast as it
+    // reads the destroyed object's vtable. Drop the Node's reference here so
+    // getNodeGui() returns null once we are gone.
+    NodePtr internalNode = _internalNode.lock();
+
+    if (internalNode) {
+        internalNode->discardNodeGuiPointer();
+    }
 }
 
 void

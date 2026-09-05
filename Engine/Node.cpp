@@ -6387,6 +6387,13 @@ Node::setNodeGuiPointer(const NodeGuiIPtr& gui)
     _imp->guiPointer = gui;
 }
 
+void
+Node::discardNodeGuiPointer()
+{
+    assert( MainThread::isMainThread() );
+    _imp->guiPointer.reset();
+}
+
 NodeGuiIPtr
 Node::getNodeGui() const
 {
