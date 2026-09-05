@@ -78,6 +78,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/Gui.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/KnobGui.h"
 #include "Gui/KnobGuiString.h"
@@ -140,7 +141,7 @@ getPixmapForMergeOperator(const QString& op,
         std::string opStr = Merge::getOperatorString( (MergingFunctionEnum)i );
         if (opStr == opstd) {
             PixmapEnum pixEnum = Merge::getOperatorPixmap( (MergingFunctionEnum)i );
-            appPTR->getIcon(pixEnum, TO_DPIX(NATRON_PLUGIN_ICON_SIZE), pix);
+            NatronIcons::get(pixEnum, TO_DPIX(NATRON_PLUGIN_ICON_SIZE), pix);
 
             return;
         }

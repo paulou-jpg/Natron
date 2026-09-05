@@ -59,6 +59,7 @@
 #include "Gui/DopeSheetHierarchyView.h"
 #include "Gui/Gui.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/GuiMacros.h"
@@ -2430,7 +2431,7 @@ DopeSheetViewPrivate::createContextMenu()
                                                            kShortcutDescActionCurveEditorConstant,
                                                            interpMenu);
     QPixmap pix;
-    appPTR->getIcon(NATRON_PIXMAP_INTERP_CONSTANT, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_INTERP_CONSTANT, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     constantInterpAction->setIcon( QIcon(pix) );
     constantInterpAction->setIconVisibleInMenu(true);
 
@@ -2444,7 +2445,7 @@ DopeSheetViewPrivate::createContextMenu()
                                                          kShortcutDescActionCurveEditorLinear,
                                                          interpMenu);
 
-    appPTR->getIcon(NATRON_PIXMAP_INTERP_LINEAR, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_INTERP_LINEAR, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     linearInterpAction->setIcon( QIcon(pix) );
     linearInterpAction->setIconVisibleInMenu(true);
 
@@ -2458,7 +2459,7 @@ DopeSheetViewPrivate::createContextMenu()
                                                          kShortcutDescActionCurveEditorSmooth,
                                                          interpMenu);
 
-    appPTR->getIcon(NATRON_PIXMAP_INTERP_CURVE_Z, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_INTERP_CURVE_Z, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     smoothInterpAction->setIcon( QIcon(pix) );
     smoothInterpAction->setIconVisibleInMenu(true);
 
@@ -2471,7 +2472,7 @@ DopeSheetViewPrivate::createContextMenu()
                                                              kShortcutIDActionCurveEditorCatmullrom,
                                                              kShortcutDescActionCurveEditorCatmullrom,
                                                              interpMenu);
-    appPTR->getIcon(NATRON_PIXMAP_INTERP_CURVE_R, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_INTERP_CURVE_R, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     catmullRomInterpAction->setIcon( QIcon(pix) );
     catmullRomInterpAction->setIconVisibleInMenu(true);
 
@@ -2484,7 +2485,7 @@ DopeSheetViewPrivate::createContextMenu()
                                                         kShortcutIDActionCurveEditorCubic,
                                                         kShortcutDescActionCurveEditorCubic,
                                                         interpMenu);
-    appPTR->getIcon(NATRON_PIXMAP_INTERP_CURVE_C, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_INTERP_CURVE_C, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     cubicInterpAction->setIcon( QIcon(pix) );
     cubicInterpAction->setIconVisibleInMenu(true);
 
@@ -2497,7 +2498,7 @@ DopeSheetViewPrivate::createContextMenu()
                                                              kShortcutIDActionCurveEditorHorizontal,
                                                              kShortcutDescActionCurveEditorHorizontal,
                                                              interpMenu);
-    appPTR->getIcon(NATRON_PIXMAP_INTERP_CURVE_H, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_INTERP_CURVE_H, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     horizontalInterpAction->setIcon( QIcon(pix) );
     horizontalInterpAction->setIconVisibleInMenu(true);
 
@@ -2510,7 +2511,7 @@ DopeSheetViewPrivate::createContextMenu()
                                                         kShortcutIDActionCurveEditorBreak,
                                                         kShortcutDescActionCurveEditorBreak,
                                                         interpMenu);
-    appPTR->getIcon(NATRON_PIXMAP_INTERP_BREAK, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_INTERP_BREAK, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     breakInterpAction->setIcon( QIcon(pix) );
     breakInterpAction->setIconVisibleInMenu(true);
 

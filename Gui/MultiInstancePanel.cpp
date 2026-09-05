@@ -69,6 +69,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/Gui.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/Label.h"
 #include "Gui/Menu.h"
@@ -567,7 +568,7 @@ MultiInstancePanel::createMultiInstanceGui(QVBoxLayout* layout)
 
     QObject::connect( _imp->removeButton, SIGNAL(clicked(bool)), this, SLOT(onRemoveButtonClicked()) );
     QPixmap selectAll;
-    appPTR->getIcon(NATRON_PIXMAP_SELECT_ALL, NATRON_SMALL_BUTTON_ICON_SIZE, &selectAll);
+    NatronIcons::get(NATRON_PIXMAP_SELECT_ALL, NATRON_SMALL_BUTTON_ICON_SIZE, &selectAll);
     _imp->selectAll = new Button(QIcon(selectAll), QString(), _imp->buttonsContainer);
     _imp->selectAll->setFixedSize(NATRON_SMALL_BUTTON_SIZE, NATRON_SMALL_BUTTON_SIZE);
     _imp->selectAll->setIconSize( QSize(NATRON_SMALL_BUTTON_ICON_SIZE, NATRON_SMALL_BUTTON_ICON_SIZE) );

@@ -49,6 +49,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/LineEdit.h"
 #include "Gui/SequenceFileDialog.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/SpinBox.h"
 #include "Gui/GuiDefines.h"
 
@@ -235,7 +236,7 @@ ExportGroupTemplateDialog::ExportGroupTemplateDialog(NodeCollection* group,
 
 
     QPixmap openPix;
-    appPTR->getIcon(NATRON_PIXMAP_OPEN_FILE, NATRON_MEDIUM_BUTTON_ICON_SIZE, &openPix);
+    NatronIcons::get(NATRON_PIXMAP_OPEN_FILE, NATRON_MEDIUM_BUTTON_ICON_SIZE, &openPix);
     _imp->openButton = new Button(QIcon(openPix), QString(), this);
     _imp->openButton->setFocusPolicy(Qt::NoFocus);
     _imp->openButton->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);

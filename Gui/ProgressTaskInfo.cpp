@@ -56,6 +56,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/TabWidget.h"
 #include "Gui/PanelWidget.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/Button.h"
 
 #define COL_PROGRESS 1
@@ -664,10 +665,10 @@ ProgressTaskInfo::createCellWidgets()
 
     int medSizeIcon = TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE);
     QPixmap restartPix, pauseOnPix, pauseOffPix, clearTasksPix;
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PLAY_DISABLED, medSizeIcon, &restartPix);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_STOP_DISABLED, medSizeIcon, &clearTasksPix);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PAUSE_ENABLED, medSizeIcon, &pauseOnPix);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PAUSE_DISABLED, medSizeIcon, &pauseOffPix);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PLAY_DISABLED, medSizeIcon, &restartPix);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_STOP_DISABLED, medSizeIcon, &clearTasksPix);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PAUSE_ENABLED, medSizeIcon, &pauseOnPix);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PAUSE_DISABLED, medSizeIcon, &pauseOffPix);
 
     const QSize medButtonIconSize( TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), TO_DPIY(NATRON_MEDIUM_BUTTON_ICON_SIZE) );
     const QSize medButtonSize( TO_DPIX(NATRON_MEDIUM_BUTTON_SIZE), TO_DPIY(NATRON_MEDIUM_BUTTON_SIZE) );

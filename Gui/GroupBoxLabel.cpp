@@ -65,6 +65,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/DockablePanel.h"
 #include "Gui/Gui.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/GuiMacros.h"
 #include "Gui/KnobGuiGroup.h"
@@ -99,9 +100,9 @@ GroupBoxLabel::setChecked(bool b)
     _checked = b;
     QPixmap pix;
     if (b) {
-        appPTR->getIcon(NATRON_PIXMAP_GROUPBOX_UNFOLDED, NATRON_SMALL_BUTTON_ICON_SIZE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_GROUPBOX_UNFOLDED, NATRON_SMALL_BUTTON_ICON_SIZE, &pix);
     } else {
-        appPTR->getIcon(NATRON_PIXMAP_GROUPBOX_FOLDED, NATRON_SMALL_BUTTON_ICON_SIZE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_GROUPBOX_FOLDED, NATRON_SMALL_BUTTON_ICON_SIZE, &pix);
     }
     setPixmap(pix);
 }

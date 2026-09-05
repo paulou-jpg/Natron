@@ -65,6 +65,7 @@ CLANG_DIAG_ON(deprecated)
 #include "Gui/Gui.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/GuiMacros.h"
 #include "Gui/Histogram.h"
@@ -269,9 +270,9 @@ TabWidget::TabWidget(Gui* gui,
 
 
     QPixmap pixC, pixM, pixL;
-    appPTR->getIcon(NATRON_PIXMAP_CLOSE_WIDGET, &pixC);
-    appPTR->getIcon(NATRON_PIXMAP_MAXIMIZE_WIDGET, &pixM);
-    appPTR->getIcon(NATRON_PIXMAP_TAB_WIDGET_LAYOUT_BUTTON, &pixL);
+    NatronIcons::get(NATRON_PIXMAP_CLOSE_WIDGET, &pixC);
+    NatronIcons::get(NATRON_PIXMAP_MAXIMIZE_WIDGET, &pixM);
+    NatronIcons::get(NATRON_PIXMAP_TAB_WIDGET_LAYOUT_BUTTON, &pixL);
 
     const QSize smallButtonSize( TO_DPIX(NATRON_SMALL_BUTTON_SIZE), TO_DPIY(NATRON_SMALL_BUTTON_SIZE) );
     const QSize smallButtonIconSize( TO_DPIX(NATRON_SMALL_BUTTON_ICON_SIZE), TO_DPIY(NATRON_SMALL_BUTTON_ICON_SIZE) );
@@ -387,11 +388,11 @@ TabWidget::createMenu()
     //menu.setFont(f) ;
     QPixmap pixV, pixM, pixH, pixC, pixA;
 
-    appPTR->getIcon(NATRON_PIXMAP_TAB_WIDGET_SPLIT_VERTICALLY, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixV);
-    appPTR->getIcon(NATRON_PIXMAP_TAB_WIDGET_SPLIT_HORIZONTALLY, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixH);
-    appPTR->getIcon(NATRON_PIXMAP_MAXIMIZE_WIDGET, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixM);
-    appPTR->getIcon(NATRON_PIXMAP_CLOSE_WIDGET, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixC);
-    appPTR->getIcon(NATRON_PIXMAP_TAB_WIDGET_LAYOUT_BUTTON_ANCHOR, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixA);
+    NatronIcons::get(NATRON_PIXMAP_TAB_WIDGET_SPLIT_VERTICALLY, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixV);
+    NatronIcons::get(NATRON_PIXMAP_TAB_WIDGET_SPLIT_HORIZONTALLY, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixH);
+    NatronIcons::get(NATRON_PIXMAP_MAXIMIZE_WIDGET, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixM);
+    NatronIcons::get(NATRON_PIXMAP_CLOSE_WIDGET, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixC);
+    NatronIcons::get(NATRON_PIXMAP_TAB_WIDGET_LAYOUT_BUTTON_ANCHOR, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixA);
     QAction* splitVerticallyAction = new QAction(QIcon(pixV), tr("Split vertical"), &menu);
     QObject::connect( splitVerticallyAction, SIGNAL(triggered()), this, SLOT(onSplitVertically()) );
     menu.addAction(splitVerticallyAction);
@@ -1781,9 +1782,9 @@ TabWidget::setAsAnchor(bool anchor)
     QPixmap pix;
 
     if (anchor) {
-        appPTR->getIcon(NATRON_PIXMAP_TAB_WIDGET_LAYOUT_BUTTON_ANCHOR, &pix);
+        NatronIcons::get(NATRON_PIXMAP_TAB_WIDGET_LAYOUT_BUTTON_ANCHOR, &pix);
     } else {
-        appPTR->getIcon(NATRON_PIXMAP_TAB_WIDGET_LAYOUT_BUTTON, &pix);
+        NatronIcons::get(NATRON_PIXMAP_TAB_WIDGET_LAYOUT_BUTTON, &pix);
     }
     _imp->leftCornerButton->setIcon( QIcon(pix) );
     if (mustUpdate) {

@@ -52,6 +52,7 @@
 #include "Engine/ViewerInstance.h"
 
 #include "Gui/CurveEditor.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h" // appPTR
 #include "Gui/GuiPrivate.h"
@@ -138,7 +139,7 @@ getPixmapForGrouping(QPixmap* pixmap,
     } else if ( grouping == QString::fromUtf8(PLUGIN_GROUP_OTHER) ) {
         e = NATRON_PIXMAP_MISC_GROUPING;
     }
-    appPTR->getIcon(e, size, pixmap);
+    NatronIcons::get(e, size, pixmap);
 }
 
 NATRON_NAMESPACE_ANONYMOUS_EXIT
@@ -920,7 +921,7 @@ Gui::findOrCreateToolButton(const PluginGroupNodePtr & plugin)
         QObject::connect( createReaderAction, SIGNAL(triggered()), this, SLOT(createReader()) );
         createReaderAction->setText( tr("Read") );
         QPixmap readImagePix;
-        appPTR->getIcon(NATRON_PIXMAP_READ_IMAGE, TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), &readImagePix);
+        NatronIcons::get(NATRON_PIXMAP_READ_IMAGE, TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), &readImagePix);
         createReaderAction->setIcon( QIcon(readImagePix) );
         createReaderAction->setShortcutContext(Qt::WidgetShortcut);
         createReaderAction->setShortcut( QKeySequence(Qt::Key_R) );
@@ -930,7 +931,7 @@ Gui::findOrCreateToolButton(const PluginGroupNodePtr & plugin)
         QObject::connect( createWriterAction, SIGNAL(triggered()), this, SLOT(createWriter()) );
         createWriterAction->setText( tr("Write") );
         QPixmap writeImagePix;
-        appPTR->getIcon(NATRON_PIXMAP_WRITE_IMAGE, TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), &writeImagePix);
+        NatronIcons::get(NATRON_PIXMAP_WRITE_IMAGE, TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), &writeImagePix);
         createWriterAction->setIcon( QIcon(writeImagePix) );
         createWriterAction->setShortcutContext(Qt::WidgetShortcut);
         createWriterAction->setShortcut( QKeySequence(Qt::Key_W) );

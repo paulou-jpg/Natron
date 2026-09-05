@@ -44,6 +44,7 @@
 #include "Engine/Utils.h" // convertFromPlainText
 
 #include "Gui/Button.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/Gui.h"
 #include "Gui/GuiApplicationManager.h" // appPTR
 #include "Gui/GuiDefines.h"
@@ -87,7 +88,7 @@ NodeSettingsPanel::NodeSettingsPanel(const MultiInstancePanelPtr & multiPanel,
     const QSize mediumBSize( TO_DPIX(NATRON_MEDIUM_BUTTON_SIZE), TO_DPIY(NATRON_MEDIUM_BUTTON_SIZE) );
     const QSize mediumIconSize( TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), TO_DPIY(NATRON_MEDIUM_BUTTON_ICON_SIZE) );
     QPixmap pixSettings;
-    appPTR->getIcon(NATRON_PIXMAP_SETTINGS, TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), &pixSettings);
+    NatronIcons::get(NATRON_PIXMAP_SETTINGS, TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), &pixSettings);
     _settingsButton = new Button( QIcon(pixSettings), QString(), getHeaderWidget() );
     _settingsButton->setFixedSize(mediumBSize);
     _settingsButton->setIconSize(mediumIconSize);

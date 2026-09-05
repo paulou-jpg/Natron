@@ -36,6 +36,7 @@ CLANG_DIAG_ON(deprecated)
 CLANG_DIAG_ON(uninitialized)
 
 #include "Gui/Gui.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/KnobGuiFactory.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/DocumentationManager.h"
@@ -211,7 +212,7 @@ GuiApplicationManagerPrivate::createLinkToCursor()
 {
     QPixmap p;
 
-    appPTR->getIcon(NATRON_PIXMAP_LINK_CURSOR, &p);
+    NatronIcons::get(NATRON_PIXMAP_LINK_CURSOR, &p);
     _linkToCursor = QCursor(p);
 }
 
@@ -220,7 +221,7 @@ GuiApplicationManagerPrivate::createLinkMultCursor()
 {
     QPixmap p;
 
-    appPTR->getIcon(NATRON_PIXMAP_LINK_MULT_CURSOR, &p);
+    NatronIcons::get(NATRON_PIXMAP_LINK_MULT_CURSOR, &p);
     _linkMultCursor = QCursor(p);
 }
 

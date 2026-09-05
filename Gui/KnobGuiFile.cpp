@@ -51,6 +51,7 @@
 #include "Gui/Gui.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/KnobUndoCommand.h"
 #include "Gui/LineEdit.h"
@@ -117,7 +118,7 @@ KnobGuiFile::createWidget(QHBoxLayout* layout)
     _openFileButton = new Button( layout->parentWidget() );
     _openFileButton->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
     QPixmap pix;
-    appPTR->getIcon(NATRON_PIXMAP_OPEN_FILE, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_OPEN_FILE, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     _openFileButton->setIcon( QIcon(pix) );
     _openFileButton->setToolTip( toolTip() );
     _openFileButton->setFocusPolicy(Qt::NoFocus); // exclude from tab focus
@@ -131,7 +132,7 @@ KnobGuiFile::createWidget(QHBoxLayout* layout)
         _reloadButton->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
         _reloadButton->setFocusPolicy(Qt::NoFocus);
         QPixmap pixRefresh;
-        appPTR->getIcon(NATRON_PIXMAP_VIEWER_REFRESH, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixRefresh);
+        NatronIcons::get(NATRON_PIXMAP_VIEWER_REFRESH, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixRefresh);
         _reloadButton->setIcon( QIcon(pixRefresh) );
         _reloadButton->setToolTip( NATRON_NAMESPACE::convertFromPlainText(tr("Reload the file."), NATRON_NAMESPACE::WhiteSpaceNormal) );
         QObject::connect( _reloadButton, SIGNAL(clicked()), this, SLOT(onReloadClicked()) );
@@ -518,7 +519,7 @@ KnobGuiOutputFile::createWidget(QHBoxLayout* layout)
     _openFileButton = new Button( layout->parentWidget() );
     _openFileButton->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
     QPixmap pix;
-    appPTR->getIcon(NATRON_PIXMAP_OPEN_FILE, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_OPEN_FILE, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
     _openFileButton->setIcon( QIcon(pix) );
     _openFileButton->setToolTip( toolTip() );
     _openFileButton->setFocusPolicy(Qt::NoFocus); // exclude from tab focus
@@ -532,7 +533,7 @@ KnobGuiOutputFile::createWidget(QHBoxLayout* layout)
         _rewriteButton->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
         _rewriteButton->setFocusPolicy(Qt::NoFocus);
         QPixmap pixRefresh;
-        appPTR->getIcon(NATRON_PIXMAP_VIEWER_REFRESH, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixRefresh);
+        NatronIcons::get(NATRON_PIXMAP_VIEWER_REFRESH, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixRefresh);
         _rewriteButton->setIcon( QIcon(pixRefresh) );
         _rewriteButton->setToolTip( NATRON_NAMESPACE::convertFromPlainText(tr("Rewrite the file."), NATRON_NAMESPACE::WhiteSpaceNormal) );
         QObject::connect( _rewriteButton, SIGNAL(clicked()), this, SLOT(onRewriteClicked()) );
@@ -811,7 +812,7 @@ KnobGuiPath::createWidget(QHBoxLayout* layout)
         _openFileButton->setFixedSize(NATRON_MEDIUM_BUTTON_SIZE, NATRON_MEDIUM_BUTTON_SIZE);
         _openFileButton->setToolTip( NATRON_NAMESPACE::convertFromPlainText(tr("Click to select a path to append to/replace this variable."), NATRON_NAMESPACE::WhiteSpaceNormal) );
         QPixmap pix;
-        appPTR->getIcon(NATRON_PIXMAP_OPEN_FILE, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_OPEN_FILE, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pix);
         _openFileButton->setIcon( QIcon(pix) );
         QObject::connect( _openFileButton, SIGNAL(clicked()), this, SLOT(onOpenFileButtonClicked()) );
 

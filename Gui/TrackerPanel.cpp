@@ -54,6 +54,7 @@
 #include "Gui/Button.h"
 #include "Gui/ComboBox.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/Label.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/KnobGuiValue.h"
@@ -392,11 +393,11 @@ TrackerPanel::TrackerPanel(const NodeGuiPtr& n,
 
     int medIconSize = TO_DPIY(NATRON_MEDIUM_BUTTON_ICON_SIZE);
     QPixmap prevPix, nextPix, addPix, removePix, clearAnimPix;
-    appPTR->getIcon(NATRON_PIXMAP_PREV_USER_KEY, medIconSize, &prevPix);
-    appPTR->getIcon(NATRON_PIXMAP_NEXT_USER_KEY, medIconSize, &nextPix);
-    appPTR->getIcon(NATRON_PIXMAP_ADD_USER_KEY, medIconSize, &addPix);
-    appPTR->getIcon(NATRON_PIXMAP_REMOVE_USER_KEY, medIconSize, &removePix);
-    appPTR->getIcon(NATRON_PIXMAP_CLEAR_ALL_ANIMATION, medIconSize, &clearAnimPix);
+    NatronIcons::get(NATRON_PIXMAP_PREV_USER_KEY, medIconSize, &prevPix);
+    NatronIcons::get(NATRON_PIXMAP_NEXT_USER_KEY, medIconSize, &nextPix);
+    NatronIcons::get(NATRON_PIXMAP_ADD_USER_KEY, medIconSize, &addPix);
+    NatronIcons::get(NATRON_PIXMAP_REMOVE_USER_KEY, medIconSize, &removePix);
+    NatronIcons::get(NATRON_PIXMAP_CLEAR_ALL_ANIMATION, medIconSize, &clearAnimPix);
 
     _imp->prevKeyframe = new Button(QIcon(prevPix), QString(), trackContainer);
     _imp->prevKeyframe->setFixedSize(medButtonSize);
@@ -494,7 +495,7 @@ TrackerPanel::TrackerPanel(const NodeGuiPtr& n,
     _imp->buttonsLayout->addWidget(_imp->removeButton);
     QObject::connect( _imp->removeButton, SIGNAL(clicked(bool)), this, SLOT(onRemoveButtonClicked()) );
     QPixmap selectAll;
-    appPTR->getIcon(NATRON_PIXMAP_SELECT_ALL, &selectAll);
+    NatronIcons::get(NATRON_PIXMAP_SELECT_ALL, &selectAll);
 
     _imp->selectAllButton = new Button(QIcon(selectAll), QString(), _imp->buttonsContainer);
     _imp->selectAllButton->setFixedSize(medButtonSize);

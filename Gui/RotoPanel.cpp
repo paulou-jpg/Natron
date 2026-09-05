@@ -69,6 +69,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/DockablePanel.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/GuiMacros.h"
 #include "Gui/Menu.h"
@@ -540,11 +541,11 @@ RotoPanel::RotoPanel(const NodeGuiPtr&  n,
 
     int medIconSize = TO_DPIY(NATRON_MEDIUM_BUTTON_ICON_SIZE);
     QPixmap prevPix, nextPix, addPix, removePix, clearAnimPix;
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PREVIOUS_KEY, medIconSize, &prevPix);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_NEXT_KEY, medIconSize, &nextPix);
-    appPTR->getIcon(NATRON_PIXMAP_ADD_KEYFRAME, medIconSize, &addPix);
-    appPTR->getIcon(NATRON_PIXMAP_REMOVE_KEYFRAME, medIconSize, &removePix);
-    appPTR->getIcon(NATRON_PIXMAP_CLEAR_ALL_ANIMATION, medIconSize, &clearAnimPix);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PREVIOUS_KEY, medIconSize, &prevPix);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_NEXT_KEY, medIconSize, &nextPix);
+    NatronIcons::get(NATRON_PIXMAP_ADD_KEYFRAME, medIconSize, &addPix);
+    NatronIcons::get(NATRON_PIXMAP_REMOVE_KEYFRAME, medIconSize, &removePix);
+    NatronIcons::get(NATRON_PIXMAP_CLEAR_ALL_ANIMATION, medIconSize, &clearAnimPix);
 
     _imp->prevKeyframe = new Button(QIcon(prevPix), QString(), _imp->splineContainer);
     _imp->prevKeyframe->setFixedSize(medButtonSize);
@@ -623,26 +624,26 @@ RotoPanel::RotoPanel(const NodeGuiPtr&  n,
 
     QPixmap pixLayer, pixBezier, pixVisible, pixUnvisible, pixLocked, pixUnlocked, pixInverted, pixUninverted, pixWheel, pixDefault, pixmerge;
     QPixmap pixPaintBrush, pixEraser, pixBlur, pixSmear, pixSharpen, pixDodge, pixBurn, pixClone, pixReveal;
-    appPTR->getIcon(NATRON_PIXMAP_LAYER, medIconSize, &pixLayer);
-    appPTR->getIcon(NATRON_PIXMAP_BEZIER, medIconSize, &pixBezier);
-    appPTR->getIcon(NATRON_PIXMAP_VISIBLE, medIconSize, &pixVisible);
-    appPTR->getIcon(NATRON_PIXMAP_UNVISIBLE, medIconSize, &pixUnvisible);
-    appPTR->getIcon(NATRON_PIXMAP_LOCKED, medIconSize, &pixLocked);
-    appPTR->getIcon(NATRON_PIXMAP_UNLOCKED, medIconSize, &pixUnlocked);
-    appPTR->getIcon(NATRON_PIXMAP_INVERTED, medIconSize, &pixInverted);
-    appPTR->getIcon(NATRON_PIXMAP_UNINVERTED, medIconSize, &pixUninverted);
-    appPTR->getIcon(NATRON_PIXMAP_COLORWHEEL, medIconSize, &pixWheel);
-    appPTR->getIcon(NATRON_PIXMAP_ROTO_MERGE, medIconSize, &pixmerge);
-    appPTR->getIcon(NATRON_PIXMAP_OVERLAY, medIconSize, &pixDefault);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_SOLID, medIconSize, &pixPaintBrush);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_ERASER, medIconSize, &pixEraser);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_BLUR, medIconSize, &pixBlur);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_SMEAR, medIconSize, &pixSmear);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_SHARPEN, medIconSize, &pixSharpen);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_DODGE, medIconSize, &pixDodge);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_BURN, medIconSize, &pixBurn);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_CLONE, medIconSize, &pixClone);
-    appPTR->getIcon(NATRON_PIXMAP_ROTOPAINT_REVEAL, medIconSize, &pixReveal);
+    NatronIcons::get(NATRON_PIXMAP_LAYER, medIconSize, &pixLayer);
+    NatronIcons::get(NATRON_PIXMAP_BEZIER, medIconSize, &pixBezier);
+    NatronIcons::get(NATRON_PIXMAP_VISIBLE, medIconSize, &pixVisible);
+    NatronIcons::get(NATRON_PIXMAP_UNVISIBLE, medIconSize, &pixUnvisible);
+    NatronIcons::get(NATRON_PIXMAP_LOCKED, medIconSize, &pixLocked);
+    NatronIcons::get(NATRON_PIXMAP_UNLOCKED, medIconSize, &pixUnlocked);
+    NatronIcons::get(NATRON_PIXMAP_INVERTED, medIconSize, &pixInverted);
+    NatronIcons::get(NATRON_PIXMAP_UNINVERTED, medIconSize, &pixUninverted);
+    NatronIcons::get(NATRON_PIXMAP_COLORWHEEL, medIconSize, &pixWheel);
+    NatronIcons::get(NATRON_PIXMAP_ROTO_MERGE, medIconSize, &pixmerge);
+    NatronIcons::get(NATRON_PIXMAP_OVERLAY, medIconSize, &pixDefault);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_SOLID, medIconSize, &pixPaintBrush);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_ERASER, medIconSize, &pixEraser);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_BLUR, medIconSize, &pixBlur);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_SMEAR, medIconSize, &pixSmear);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_SHARPEN, medIconSize, &pixSharpen);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_DODGE, medIconSize, &pixDodge);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_BURN, medIconSize, &pixBurn);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_CLONE, medIconSize, &pixClone);
+    NatronIcons::get(NATRON_PIXMAP_ROTOPAINT_REVEAL, medIconSize, &pixReveal);
 
     _imp->iconLayer.addPixmap(pixLayer);
     _imp->iconBezier.addPixmap(pixBezier);

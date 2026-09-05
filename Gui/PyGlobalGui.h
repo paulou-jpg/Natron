@@ -40,6 +40,7 @@ CLANG_DIAG_ON(uninitialized)
 
 #include "Gui/PyGuiApp.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiFwd.h"
 
 NATRON_NAMESPACE_ENTER;
@@ -63,7 +64,7 @@ public:
     {
         QPixmap ret;
 
-        appPTR->getIcon(val, &ret);
+        NatronIcons::get(val, &ret);
 
         return ret;
     }
