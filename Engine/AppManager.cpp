@@ -3382,14 +3382,39 @@ AppManager::refreshOpenGLRenderingFlagOnAllInstances()
     }
 }
 
+NATRON_NAMESPACE_ANONYMOUS_ENTER
+
+/**
+ * @brief The instance a user-facing message should be shown in, or null when
+ * there is nobody to show it to.
+ *
+ * The eight Dialogs functions below each carried their own copy of this, which
+ * is the only reason they reached the process-wide singleton at all: none of
+ * them cares *which* engine is running, only whether there is a user interface
+ * to route a message to. Keeping that in one place means the headless
+ * behaviour is stated once rather than repeated eight times.
+ **/
+AppInstancePtr
+messageRecipient()
+{
+    appPTR->hideSplashScreen();
+    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
+    if ( topLvlInstance && !appPTR->isBackground() ) {
+        return topLvlInstance;
+    }
+
+    return AppInstancePtr();
+}
+
+NATRON_NAMESPACE_ANONYMOUS_EXIT
+
 void
 Dialogs::errorDialog(const std::string & title,
                      const std::string & message,
                      bool useHtml)
 {
-    appPTR->hideSplashScreen();
-    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
-    if ( topLvlInstance && !appPTR->isBackground() ) {
+    AppInstancePtr topLvlInstance = messageRecipient();
+    if (topLvlInstance) {
         topLvlInstance->errorDialog(title, message, useHtml);
     } else {
         std::cerr << "ERROR: " << title << ": " <<  message << std::endl;
@@ -3402,9 +3427,8 @@ Dialogs::errorDialog(const std::string & title,
                      bool* stopAsking,
                      bool useHtml)
 {
-    appPTR->hideSplashScreen();
-    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
-    if ( topLvlInstance && !appPTR->isBackground() ) {
+    AppInstancePtr topLvlInstance = messageRecipient();
+    if (topLvlInstance) {
         topLvlInstance->errorDialog(title, message, stopAsking, useHtml);
     } else {
         std::cerr << "ERROR: " << title << ": " <<  message << std::endl;
@@ -3416,9 +3440,8 @@ Dialogs::warningDialog(const std::string & title,
                        const std::string & message,
                        bool useHtml)
 {
-    appPTR->hideSplashScreen();
-    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
-    if ( topLvlInstance && !appPTR->isBackground() ) {
+    AppInstancePtr topLvlInstance = messageRecipient();
+    if (topLvlInstance) {
         topLvlInstance->warningDialog(title, message, useHtml);
     } else {
         std::cerr << "WARNING: " << title << ": " << message << std::endl;
@@ -3431,9 +3454,8 @@ Dialogs::warningDialog(const std::string & title,
                        bool* stopAsking,
                        bool useHtml)
 {
-    appPTR->hideSplashScreen();
-    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
-    if ( topLvlInstance && !appPTR->isBackground() ) {
+    AppInstancePtr topLvlInstance = messageRecipient();
+    if (topLvlInstance) {
         topLvlInstance->warningDialog(title, message, stopAsking, useHtml);
     } else {
         std::cerr << "WARNING: " << title << ":" << message << std::endl;
@@ -3445,9 +3467,8 @@ Dialogs::informationDialog(const std::string & title,
                            const std::string & message,
                            bool useHtml)
 {
-    appPTR->hideSplashScreen();
-    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
-    if ( topLvlInstance && !appPTR->isBackground() ) {
+    AppInstancePtr topLvlInstance = messageRecipient();
+    if (topLvlInstance) {
         topLvlInstance->informationDialog(title, message, useHtml);
     } else {
         std::cout << "INFO: " << title << ":" << message << std::endl;
@@ -3460,9 +3481,8 @@ Dialogs::informationDialog(const std::string & title,
                            bool* stopAsking,
                            bool useHtml)
 {
-    appPTR->hideSplashScreen();
-    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
-    if ( topLvlInstance && !appPTR->isBackground() ) {
+    AppInstancePtr topLvlInstance = messageRecipient();
+    if (topLvlInstance) {
         topLvlInstance->informationDialog(title, message, stopAsking, useHtml);
     } else {
         std::cout << "INFO: " << title << ":" << message << std::endl;
@@ -3476,9 +3496,8 @@ Dialogs::questionDialog(const std::string & title,
                         StandardButtons buttons,
                         StandardButtonEnum defaultButton)
 {
-    appPTR->hideSplashScreen();
-    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
-    if ( topLvlInstance && !appPTR->isBackground() ) {
+    AppInstancePtr topLvlInstance = messageRecipient();
+    if (topLvlInstance) {
         return topLvlInstance->questionDialog(title, message, useHtml, buttons, defaultButton);
     } else {
         std::cout << "QUESTION ASKED: " << title << ":" << message << std::endl;
@@ -3496,9 +3515,8 @@ Dialogs::questionDialog(const std::string & title,
                         StandardButtonEnum defaultButton,
                         bool* stopAsking)
 {
-    appPTR->hideSplashScreen();
-    AppInstancePtr topLvlInstance = appPTR->getTopLevelInstance();
-    if ( topLvlInstance && !appPTR->isBackground() ) {
+    AppInstancePtr topLvlInstance = messageRecipient();
+    if (topLvlInstance) {
         return topLvlInstance->questionDialog(title, message, useHtml, buttons, defaultButton, stopAsking);
     } else {
         std::cout << "QUESTION ASKED: " << title << ":" << message << std::endl;
