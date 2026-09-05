@@ -59,6 +59,7 @@
 #include "Engine/TimeLine.h"
 #include "Engine/ViewIdx.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 #define NATRON_PYPLUG_EXPORTER_VERSION 10
 
@@ -334,7 +335,7 @@ NodeCollection::hasNodeRendering() const
 void
 NodeCollection::refreshViewersAndPreviews()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     AppInstancePtr appInst = getApplication();
     if (!appInst) {
@@ -555,7 +556,7 @@ NodeCollection::connectNodes(int inputNumber,
                              bool force)
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     NodePtr existingInput = output->getRealInput(inputNumber);
     if (force && existingInput) {
@@ -1090,7 +1091,7 @@ NodeGroup::NodeGroup(const NodePtr &node)
 bool
 NodeGroup::getIsDeactivatingGroup() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->isDeactivatingGroup;
 }
@@ -1098,14 +1099,14 @@ NodeGroup::getIsDeactivatingGroup() const
 void
 NodeGroup::setIsDeactivatingGroup(bool b)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->isDeactivatingGroup = b;
 }
 
 bool
 NodeGroup::getIsActivatingGroup() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->isActivatingGroup;
 }
@@ -1113,7 +1114,7 @@ NodeGroup::getIsActivatingGroup() const
 void
 NodeGroup::setIsActivatingGroup(bool b)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->isActivatingGroup = b;
 }
 
@@ -1596,7 +1597,7 @@ NodeGroup::knobChanged(KnobI* k,
 void
 NodeGroup::setSubGraphEditable(bool editable)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->isEditable = editable;
     Q_EMIT graphEditableChanged(editable);
 }
@@ -1604,7 +1605,7 @@ NodeGroup::setSubGraphEditable(bool editable)
 bool
 NodeGroup::isSubGraphEditable() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->isEditable;
 }

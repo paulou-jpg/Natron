@@ -76,6 +76,7 @@ CLANG_DIAG_ON(unknown-pragmas)
 #include "Engine/WriteNode.h"
 #ifdef DEBUG
 #include "Engine/TLSHolder.h"
+#include "Global/MainThread.h"
 #endif
 
 
@@ -363,7 +364,7 @@ OfxEffectInstance::createOfxImageEffectInstance(OFX::Host::ImageEffect::ImageEff
      */
 
     ///Only called from the main thread.
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(plugin && desc && context != eContextNone);
 
 
@@ -1353,7 +1354,7 @@ OfxEffectInstance::getPreferredMetadata(NodeMetadata& metadata)
         return eStatusFailed;
     }
     assert(_imp->context != eContextNone);
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     StatusEnum stat;
     ////////////////////////////////////////////////////////////////
@@ -2781,7 +2782,7 @@ void
 OfxEffectInstance::onSyncPrivateDataRequested()
 {
     ///Can only be called in the main thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     RECURSIVE_ACTION();
 

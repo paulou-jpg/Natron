@@ -53,6 +53,7 @@
 #include "Engine/TimeLine.h"
 #include "Engine/Transform.h"
 #include "Engine/ViewIdx.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -860,7 +861,7 @@ whitespacify(std::string & str)
 std::string
 KnobChoice::getHintToolTipFull() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     int gothelp = 0;
 
@@ -1858,7 +1859,7 @@ KnobParametric::setCurveColor(int dimension,
                               double b)
 {
     ///only called in the main thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     ///Mt-safe as it never changes
 
     assert( dimension < (int)_curvesColor.size() );
@@ -1896,7 +1897,7 @@ KnobParametric::setParametricRange(double min,
                                    double max)
 {
     ///only called in the main thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     ///Mt-safe as it never changes
 
     for (U32 i = 0; i < _curves.size(); ++i) {

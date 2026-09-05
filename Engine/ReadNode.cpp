@@ -64,6 +64,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Engine/KnobSerialization.h" // createDefaultValueForParam
 #include "Engine/Plugin.h"
 #include "Engine/Settings.h"
+#include "Global/MainThread.h"
 
 //The plug-in that is instantiated whenever this node is created and doesn't point to any valid or known extension
 #define READ_NODE_DEFAULT_READER PLUGINID_OFX_READOIIO
@@ -445,7 +446,7 @@ ReadNodePrivate::cloneGenericKnobs()
 void
 ReadNodePrivate::destroyReadNode()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (!embeddedPlugin) {
         return;
     }

@@ -38,6 +38,7 @@
 #include "Engine/TrackerContext.h"
 #include "Engine/TrackMarker.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -1076,7 +1077,7 @@ TrackerNodeInteract::findLineIntersection(const Point& p,
 void
 TrackerNodeInteract::refreshSelectedMarkerTexture()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (isTracking) {
         return;
     }
@@ -1106,7 +1107,7 @@ void
 TrackerNodeInteract::makeMarkerKeyTexture(int time,
                                           const TrackMarkerPtr& track)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     TrackRequestKey k;
     k.time = time;
     k.track = track;
@@ -1331,7 +1332,7 @@ TrackerNodeInteract::onContextSelectionChanged(int reason)
 void
 TrackerNodeInteract::onTrackImageRenderingFinished()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QFutureWatcher<std::pair<ImagePtr, RectI> >* future = dynamic_cast<QFutureWatcher<std::pair<ImagePtr, RectI> >*>( sender() );
     assert(future);
     std::pair<ImagePtr, RectI> ret = future->result();
@@ -1365,7 +1366,7 @@ TrackerNodeInteract::onTrackImageRenderingFinished()
 void
 TrackerNodeInteract::onKeyFrameImageRenderingFinished()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     TrackWatcher* future = dynamic_cast<TrackWatcher*>( sender() );
     assert(future);
     std::pair<ImagePtr, RectI> ret = future->result();

@@ -53,6 +53,7 @@
 #include "Engine/TimeLine.h"
 #include "Engine/Transform.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 #define kMergeOFXParamOperation "operation"
 #define kBlurCImgParamSize "size"
@@ -132,7 +133,7 @@ void
 RotoItem::setParentLayer(RotoLayerPtr layer)
 {
     ///called on the main-thread only
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     RotoStrokeItem* isStroke = dynamic_cast<RotoStrokeItem*>(this);
     if (isStroke) {
@@ -176,7 +177,7 @@ RotoItem::setGloballyActivated(bool a,
                                bool setChildren)
 {
     ///called on the main-thread only
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (setChildren) {
         setGloballyActivated_recursive(a);
     } else {
@@ -262,7 +263,7 @@ RotoItem::setLocked(bool l,
                     RotoItem::SelectionReasonEnum reason)
 {
     ///called on the main-thread only
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (!lockChildren) {
         {
             QMutexLocker m(&itemMutex);
@@ -346,7 +347,7 @@ bool
 RotoItem::setScriptName(const std::string & name)
 {
     ///called on the main-thread only
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if ( name.empty() ) {
         return false;

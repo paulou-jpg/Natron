@@ -41,6 +41,7 @@
 #include "Engine/AbortableRenderInfo.h"
 #include "Engine/ThreadPool.h"
 #include "Engine/OpenGLViewerI.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -253,7 +254,7 @@ const std::vector<NodeWPtr> &
 Node::getInputs() const
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(_imp->inputsInitialized);
 
     NodePtr parent = _imp->multiInstanceParent.lock();
@@ -268,7 +269,7 @@ const std::vector<NodeWPtr> &
 Node::getGuiInputs() const
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(_imp->inputsInitialized);
 
     NodePtr parent = _imp->multiInstanceParent.lock();
@@ -418,7 +419,7 @@ void
 Node::initializeInputs()
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     const int inputCount = getNInputs();
     InputsV oldInputs;
     {
@@ -549,7 +550,7 @@ Node::hasOutputConnected() const
     if ( isOutputNode() ) {
         return true;
     }
-    if ( QThread::currentThread() == qApp->thread() ) {
+    if ( MainThread::isMainThread() ) {
         if (_imp->outputs.size() == 1) {
             NodePtr output = _imp->outputs.front().lock();
 
@@ -575,7 +576,7 @@ bool
 Node::checkIfConnectingInputIsOk(Node* input) const
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (!input || input == this) {
         return false;
     }
@@ -590,7 +591,7 @@ Node::isNodeUpstream(const Node* input,
                      bool* ok) const
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if (!input) {
         *ok = false;
@@ -1046,7 +1047,7 @@ Node::switchInput0And1()
 void
 Node::onInputLabelChanged(const QString & name)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(_imp->inputsInitialized);
     Node* inp = dynamic_cast<Node*>( sender() );
     assert(inp);
@@ -1286,7 +1287,7 @@ Node::inputIndex(const NodePtr& n) const
     }
 
     ///Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(_imp->inputsInitialized);
 
     NodePtr parent = _imp->multiInstanceParent.lock();
@@ -1311,7 +1312,7 @@ Node::getInputLabels() const
     assert(_imp->inputsInitialized);
     ///MT-safe as it never changes.
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->inputLabels;
 }
@@ -1321,7 +1322,7 @@ void
 Node::getOutputsConnectedToThisNode(std::map<NodePtr, int>* outputs)
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     NodePtr thisSHared = shared_from_this();
     for (NodesWList::iterator it = _imp->outputs.begin(); it != _imp->outputs.end(); ++it) {
@@ -1343,7 +1344,7 @@ const NodesWList &
 Node::getOutputs() const
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->outputs;
 }
@@ -1352,7 +1353,7 @@ const NodesWList &
 Node::getGuiOutputs() const
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->guiOutputs;
 }
@@ -1558,14 +1559,14 @@ Node::getPreferredInputNode() const
 void
 Node::beginInputEdition()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     ++_imp->inputModifiedRecursion;
 }
 
 void
 Node::endInputEdition(bool triggerRender)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (_imp->inputModifiedRecursion > 0) {
         --_imp->inputModifiedRecursion;
     }
@@ -1600,7 +1601,7 @@ Node::onInputChanged(int inputNb,
     if ( getApp()->getProject()->isProjectClosing() ) {
         return;
     }
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     bool mustCallEndInputEdition = _imp->inputModifiedRecursion == 0;
     if (mustCallEndInputEdition) {
@@ -1715,7 +1716,7 @@ Node::onInputChanged(int inputNb,
 bool
 Node::duringInputChangedAction() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->inputModifiedRecursion > 0;
 }
@@ -1766,7 +1767,7 @@ InspectorNode::connectInput(const NodePtr& input,
                             int inputNumber)
 {
     ///Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if ( !isEffectViewer() ) {
         return connectInputBase(input, inputNumber);
@@ -1817,7 +1818,7 @@ void
 InspectorNode::setActiveInputAndRefresh(int inputNb,
                                         bool isASide)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     int maxInputs = getNInputs();
     if ( ( inputNb > (maxInputs - 1) ) || (inputNb < 0) || ( !getInput(inputNb) ) ) {
@@ -1849,7 +1850,7 @@ void
 InspectorNode::refreshActiveInputs(int inputNbChanged,
                                    bool isASide)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     NodePtr inputNode = getRealInput(inputNbChanged);
     {
         QMutexLocker l(&_activeInputsMutex);
@@ -1960,7 +1961,7 @@ InspectorNode::getActiveInputs(int & a,
 void
 InspectorNode::setInputA(int inputNb)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     {
         QMutexLocker l(&_activeInputsMutex);
         _activeInputs[0] = inputNb;
@@ -1971,7 +1972,7 @@ InspectorNode::setInputA(int inputNb)
 void
 InspectorNode::setInputB(int inputNb)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     {
         QMutexLocker l(&_activeInputsMutex);
         _activeInputs[1] = inputNb;

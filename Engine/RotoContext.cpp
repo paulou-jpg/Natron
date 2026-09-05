@@ -66,6 +66,7 @@
 #include "Engine/Transform.h"
 #include "Engine/ViewerInstance.h"
 #include "Engine/ViewIdx.h"
+#include "Global/MainThread.h"
 
 #define kMergeOFXParamOperation "operation"
 #define kMergeOFXParamInvertMask "maskInvert"
@@ -234,7 +235,7 @@ RotoContext::addLayerInternal(bool declarePython)
     assert(this_shared);
 
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     RotoLayerPtr item;
     std::string name = generateUniqueName(kRotoLayerBaseName);
     int indexInLayer = -1;
@@ -301,7 +302,7 @@ RotoItemPtr
 RotoContext::getLastInsertedItem() const
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->lastInsertedItem;
 }
@@ -325,7 +326,7 @@ void
 RotoContext::setAutoKeyingEnabled(bool enabled)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     QMutexLocker l(&_imp->rotoContextMutex);
     _imp->autoKeying = enabled;
@@ -335,7 +336,7 @@ bool
 RotoContext::isAutoKeyingEnabled() const
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     QMutexLocker l(&_imp->rotoContextMutex);
 
@@ -346,7 +347,7 @@ void
 RotoContext::setFeatherLinkEnabled(bool enabled)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     QMutexLocker l(&_imp->rotoContextMutex);
     _imp->featherLink = enabled;
@@ -356,7 +357,7 @@ bool
 RotoContext::isFeatherLinkEnabled() const
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     QMutexLocker l(&_imp->rotoContextMutex);
 
@@ -367,7 +368,7 @@ void
 RotoContext::setRippleEditEnabled(bool enabled)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     QMutexLocker l(&_imp->rotoContextMutex);
     _imp->rippleEdit = enabled;
@@ -377,7 +378,7 @@ bool
 RotoContext::isRippleEditEnabled() const
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     QMutexLocker l(&_imp->rotoContextMutex);
 
@@ -427,7 +428,7 @@ RotoContext::makeBezier(double x,
                         bool isOpenBezier)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     RotoLayerPtr parentLayer;
     RotoContextPtr this_shared = std::dynamic_pointer_cast<RotoContext>( shared_from_this() );
     assert(this_shared);
@@ -481,7 +482,7 @@ RotoContext::makeStroke(RotoStrokeType type,
                         bool clearSel)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     RotoLayerPtr parentLayer;
     RotoContextPtr this_shared = std::dynamic_pointer_cast<RotoContext>( shared_from_this() );
     assert(this_shared);
@@ -632,7 +633,7 @@ RotoContext::removeItem(const RotoItemPtr& item,
                         RotoItem::SelectionReasonEnum reason)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     RotoLayerPtr layer = item->getParentLayer();
     if (layer) {
@@ -651,7 +652,7 @@ RotoContext::addItem(const RotoLayerPtr& layer,
                      RotoItem::SelectionReasonEnum reason)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     {
         if (layer) {
             layer->insertItem(item, indexInLayer);
@@ -674,7 +675,7 @@ const std::list<RotoLayerPtr> &
 RotoContext::getLayers() const
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->layers;
 }
@@ -688,7 +689,7 @@ RotoContext::isNearbyBezier(double x,
                             bool* feather) const
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     QMutexLocker l(&_imp->rotoContextMutex);
     std::list<std::pair<BezierPtr, std::pair<int, double> > > nearbyBeziers;
@@ -755,7 +756,7 @@ void
 RotoContext::onAutoKeyingChanged(bool enabled)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QMutexLocker l(&_imp->rotoContextMutex);
     _imp->autoKeying = enabled;
 }
@@ -764,7 +765,7 @@ void
 RotoContext::onFeatherLinkChanged(bool enabled)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QMutexLocker l(&_imp->rotoContextMutex);
     _imp->featherLink = enabled;
 }
@@ -773,7 +774,7 @@ void
 RotoContext::onRippleEditChanged(bool enabled)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QMutexLocker l(&_imp->rotoContextMutex);
     _imp->rippleEdit = enabled;
 }
@@ -1012,7 +1013,7 @@ linkItemsKnobsRecursively(RotoContext* ctx,
 void
 RotoContext::load(const RotoContextSerialization & obj)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     ///no need to lock here, when this is called the main-thread is the only active thread
 
     _imp->isCurrentlyLoading = true;
@@ -1152,7 +1153,7 @@ void
 RotoContext::selectInternal(const RotoItemPtr & item, bool slaveKnobs)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     int nbUnlockedBeziers = 0;
     int nbUnlockedStrokes = 0;
@@ -1333,7 +1334,7 @@ void
 RotoContext::deselectInternal(RotoItemPtr b)
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     int nbBeziersUnLockedBezier = 0;
     int nbStrokesUnlocked = 0;
     {
@@ -1601,7 +1602,7 @@ void
 RotoContext::setKeyframeOnSelectedCurves()
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     double time = getTimelineCurrentTime();
     QMutexLocker l(&_imp->rotoContextMutex);
@@ -1620,7 +1621,7 @@ void
 RotoContext::removeAnimationOnSelectedCurves()
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     double time = getTimelineCurrentTime();
     for (std::list<RotoItemPtr>::iterator it = _imp->selectedItems.begin(); it != _imp->selectedItems.end(); ++it) {
@@ -1641,7 +1642,7 @@ void
 RotoContext::removeKeyframeOnSelectedCurves()
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     double time = getTimelineCurrentTime();
     for (std::list<RotoItemPtr>::iterator it = _imp->selectedItems.begin(); it != _imp->selectedItems.end(); ++it) {
@@ -1691,7 +1692,7 @@ void
 RotoContext::goToPreviousKeyframe()
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     double time = getTimelineCurrentTime();
     int minimum = std::numeric_limits<int>::min();
@@ -1725,7 +1726,7 @@ void
 RotoContext::goToNextKeyframe()
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     double time = getTimelineCurrentTime();
     int maximum = std::numeric_limits<int>::max();
@@ -1784,7 +1785,7 @@ const std::list<RotoItemPtr> &
 RotoContext::getSelectedItems() const
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     QMutexLocker l(&_imp->rotoContextMutex);
 
     return _imp->selectedItems;
@@ -1794,7 +1795,7 @@ std::list<RotoDrawableItemPtr>
 RotoContext::getSelectedCurves() const
 {
     ///only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     std::list<RotoDrawableItemPtr> drawables;
     double time = getTimelineCurrentTime();
     {

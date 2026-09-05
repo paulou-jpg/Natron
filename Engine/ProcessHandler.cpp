@@ -46,6 +46,7 @@
 #include "Engine/AppManager.h"
 #include "Engine/Node.h"
 #include "Engine/OutputEffectInstance.h"
+#include "Global/MainThread.h"
 
 NATRON_NAMESPACE_ENTER
 
@@ -159,7 +160,7 @@ void
 ProcessHandler::onDataWrittenToSocket()
 {
     ///always running in the main thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     QString str = QString::fromUtf8( _bgProcessOutputSocket->readLine() );
     while ( str.endsWith( QLatin1Char('\n') ) ) {
@@ -209,7 +210,7 @@ void
 ProcessHandler::onInputPipeConnectionMade()
 {
     ///always running in the main thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     _processLog.append( QString::fromUtf8("The input channel (the one the bg process listens to) was successfully created and connected.\n") );
 }

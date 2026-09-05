@@ -137,6 +137,7 @@
 #include "Engine/ViewIdx.h"
 #include "Engine/ViewerInstance.h" // RenderStatsMap
 #include "Engine/WriteNode.h"
+#include "Global/MainThread.h"
 
 #include "sbkversion.h" // shiboken/pyside version
 
@@ -1189,7 +1190,7 @@ AppManager::getNumInstances() const
 const AppInstanceVec &
 AppManager::getAppInstances() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->_appInstances;
 }
@@ -1309,7 +1310,7 @@ void
 AppManager::wipeAndCreateDiskCacheStructure()
 {
     //Should be called on the main-thread because potentially can interact with rendering
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     abortAnyProcessing();
 
@@ -2614,7 +2615,7 @@ void
 AppManager::onNodeMemoryRegistered(qint64 mem)
 {
     ///runs only in the main thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if ( ( (qint64)_imp->_nodesGlobalMemoryUse + mem ) < 0 ) {
         qDebug() << "Memory underflow...a node is trying to release more memory than it registered.";
@@ -2629,7 +2630,7 @@ AppManager::onNodeMemoryRegistered(qint64 mem)
 qint64
 AppManager::getTotalNodesMemoryRegistered() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->_nodesGlobalMemoryUse;
 }
@@ -2866,7 +2867,7 @@ void
 AppManager::requestOFXDIalogOnMainThread(OfxImageEffectInstance* instance,
                                          void* instanceData)
 {
-    if ( QThread::currentThread() == qApp->thread() ) {
+    if ( MainThread::isMainThread() ) {
         onOFXDialogOnMainThreadReceived(instance, instanceData);
     } else {
         Q_EMIT s_requestOFXDialogOnMainThread(instance, instanceData);
@@ -2877,7 +2878,7 @@ void
 AppManager::onOFXDialogOnMainThreadReceived(OfxImageEffectInstance* instance,
                                             void* instanceData)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if (instance == NULL) {
         // instance may be NULL if using OfxDialogSuiteV1
         OfxHost::OfxHostDataTLSPtr tls = _imp->ofxHost->getTLSData();
@@ -3182,14 +3183,14 @@ void
 AppManager::registerUNCPath(const QString& path,
                             const QChar& driveLetter)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->uncPathMapping[driveLetter] = path;
 }
 
 QString
 AppManager::mapUNCPathToPathWithDriveLetter(const QString& uncPath) const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( uncPath.isEmpty() ) {
         return uncPath;
     }

@@ -37,6 +37,7 @@
 #include "Engine/NodeGuiI.h"
 #include "Engine/NodeSerialization.h"
 #include "Engine/GenericSchedulerThreadWatcher.h"
+#include "Global/MainThread.h"
 
 
 NATRON_NAMESPACE_ENTER
@@ -45,7 +46,7 @@ void
 Node::load(const CreateNodeArgs& args)
 {
     ///Called from the main thread. MT-safe
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     ///cannot load twice
     assert(!_imp->effect);
@@ -249,7 +250,7 @@ Node::setValuesFromSerialization(const CreateNodeArgs& args)
 
     std::vector<std::string> params = args.getPropertyN<std::string>(kCreateNodeArgsPropNodeInitialParamValues);
 
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(_imp->knobsInitialized);
     const std::vector<KnobIPtr> & nodeKnobs = getKnobs();
 
@@ -689,7 +690,7 @@ Node::storeKnobsLinks(const NodeSerialization & serialization,
                       const std::map<std::string, std::string>& oldNewScriptNamesMapping)
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     const NodeSerialization::KnobValues & knobsValues = serialization.getKnobsValues();
     ///try to find a serialized value for this knob
@@ -740,7 +741,7 @@ Node::restoreKnobsLinks(const NodesList & allNodes,
                         bool throwOnFailure)
 {
     ////Only called by the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     std::vector<KnobIPtr> knobs = getKnobs();
     for (std::vector<KnobIPtr>::iterator it = knobs.begin(); it != knobs.end(); ++it) {

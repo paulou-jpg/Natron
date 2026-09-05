@@ -73,6 +73,7 @@
 #include "Engine/UndoCommand.h"
 #include "Engine/ViewIdx.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 //#define NATRON_ALWAYS_ALLOCATE_FULL_IMAGE_BOUNDS
 
@@ -3025,7 +3026,7 @@ EffectInstance::onSignificantEvaluateAboutToBeCalled(KnobI* knob)
         return;
     }
 
-    bool isMT = QThread::currentThread() == qApp->thread();
+    bool isMT = MainThread::isMainThread();
 
     if ( isMT && ( !knob || knob->getEvaluateOnChange() ) ) {
         getApp()->triggerAutoSave();
@@ -3266,7 +3267,7 @@ EffectInstance::onKnobSlaved(const KnobIPtr& slave,
 void
 EffectInstance::setCurrentViewportForOverlays_public(OverlaySupport* viewport)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     getNode()->setCurrentViewportForHostOverlays(viewport);
     _imp->overlaysViewport = viewport;
     setCurrentViewportForOverlays(viewport);
@@ -3275,7 +3276,7 @@ EffectInstance::setCurrentViewportForOverlays_public(OverlaySupport* viewport)
 OverlaySupport*
 EffectInstance::getCurrentViewportForOverlays() const
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     return _imp->overlaysViewport;
 }
@@ -3292,7 +3293,7 @@ EffectInstance::drawOverlay_public(double time,
                                    ViewIdx view)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay() && !getNode()->hasHostOverlay() ) {
         return;
     }
@@ -3326,7 +3327,7 @@ EffectInstance::onOverlayPenDown_public(double time,
                                         PenType pen)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay()  && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -3370,7 +3371,7 @@ EffectInstance::onOverlayPenDoubleClicked_public(double time,
                                                  const QPointF & pos)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay()  && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -3416,7 +3417,7 @@ EffectInstance::onOverlayPenMotion_public(double time,
                                           double timestamp)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay()  && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -3462,7 +3463,7 @@ EffectInstance::onOverlayPenUp_public(double time,
                                       double timestamp)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay()  && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -3506,7 +3507,7 @@ EffectInstance::onOverlayKeyDown_public(double time,
                                         KeyboardModifiers modifiers)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay()  && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -3542,7 +3543,7 @@ EffectInstance::onOverlayKeyUp_public(double time,
                                       KeyboardModifiers modifiers)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay()  && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -3578,7 +3579,7 @@ EffectInstance::onOverlayKeyRepeat_public(double time,
                                           KeyboardModifiers modifiers)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay()  && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -3611,7 +3612,7 @@ EffectInstance::onOverlayFocusGained_public(double time,
                                             ViewIdx view)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay() && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -3645,7 +3646,7 @@ EffectInstance::onOverlayFocusLost_public(double time,
                                           ViewIdx view)
 {
     ///cannot be run in another thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     if ( !hasOverlay() && !getNode()->hasHostOverlay() ) {
         return false;
     }
@@ -4799,7 +4800,7 @@ EffectInstance::onKnobValueChanged_public(KnobI* k,
         node->onFileNameParameterChanged(k);
     }
 
-    if ( kh && ( QThread::currentThread() == qApp->thread() ) &&
+    if ( kh && ( MainThread::isMainThread() ) &&
          originatedFromMainThread && ( reason != eValueChangedReasonTimeChanged) ) {
         ///Run the following only in the main-thread
         if ( hasOverlay() && node->shouldDrawOverlay() && !node->hasHostOverlayForParam(k) ) {
@@ -5285,7 +5286,7 @@ EffectInstance::getPreferredMetadata_public(NodeMetadata& metadata)
             // syncPrivateData() could also be a virtual member of EffectInstance
             OfxEffectInstance* effect = dynamic_cast<OfxEffectInstance*>(this);
             if (effect) {
-                assert( QThread::currentThread() == qApp->thread() );
+                assert( MainThread::isMainThread() );
                 effect->onSyncPrivateDataRequested(); //syncPrivateData_other_thread();
             }
         }
@@ -5708,7 +5709,7 @@ EffectInstance::refreshMetadata_internal()
 bool
 EffectInstance::refreshMetadata_public(bool recurse)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if (recurse) {
 
@@ -5945,7 +5946,7 @@ EffectInstance::getRecursionLevel() const
 void
 EffectInstance::setClipPreferencesRunning(bool running)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     _imp->runningClipPreferences = running;
 }
 

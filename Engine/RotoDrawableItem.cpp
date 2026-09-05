@@ -61,6 +61,7 @@
 #include "Engine/Transform.h"
 #include "Engine/ViewIdx.h"
 #include "Engine/ViewerInstance.h"
+#include "Global/MainThread.h"
 
 #define kMergeOFXParamOperation "operation"
 #define kMergeOFXParamInvertMask "maskInvert"
@@ -1176,7 +1177,7 @@ void
 RotoDrawableItem::setOverlayColor(const double *color)
 {
     ///MT-safe: only called on the main-thread
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     {
         QMutexLocker l(&itemMutex);
         std::memcpy(_imp->overlayColor, color, sizeof(double) * 4);

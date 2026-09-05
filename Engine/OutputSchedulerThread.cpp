@@ -68,6 +68,7 @@
 #include "Engine/ViewIdx.h"
 #include "Engine/ViewerInstance.h"
 #include "Engine/WriteNode.h"
+#include "Global/MainThread.h"
 
 #ifdef DEBUG
 //#define TRACE_SCHEDULER
@@ -1734,7 +1735,7 @@ OutputSchedulerThread::appendToBuffer_internal(double time,
                                                const BufferableObjectPtr& frame,
                                                bool wakeThread)
 {
-    if ( QThread::currentThread() == qApp->thread() ) {
+    if ( MainThread::isMainThread() ) {
         ///Single-threaded , call directly the function
         if (frame) {
             BufferedFrame b;
@@ -3036,7 +3037,7 @@ RenderEngine::renderFromCurrentFrame(bool enableRenderStats,
 void
 RenderEngine::onCurrentFrameRenderRequestPosted()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     //Okay we are at the end of the event loop, concatenate all similar events
     RenderEnginePrivate::RefreshRequest r;
@@ -3061,7 +3062,7 @@ void
 RenderEngine::renderCurrentFrameInternal(bool enableRenderStats,
                                          bool canAbort)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     ViewerInstance* isViewer = dynamic_cast<ViewerInstance*>( _imp->output.lock().get() );
     if (!isViewer) {
@@ -3106,7 +3107,7 @@ void
 RenderEngine::renderCurrentFrame(bool enableRenderStats,
                                  bool canAbort)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     RenderEnginePrivate::RefreshRequest r;
     r.enableStats = enableRenderStats;
     r.enableAbort = canAbort;
@@ -3157,7 +3158,7 @@ RenderEngine::waitForEngineToQuit_not_main_thread()
 void
 RenderEngine::waitForEngineToQuit_main_thread(bool allowRestart)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(!_imp->engineWatcher);
     _imp->engineWatcher.reset( new RenderEngineWatcher(this) );
     QObject::connect( _imp->engineWatcher.get(), SIGNAL(taskFinished(int,GenericWatcherCallerArgsPtr)), this, SLOT(onWatcherEngineQuitEmitted()) );
@@ -3263,7 +3264,7 @@ RenderEngine::onWatcherEngineQuitEmitted()
 void
 RenderEngine::waitForAbortToComplete_main_thread()
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
     assert(!_imp->engineWatcher);
     _imp->engineWatcher.reset( new RenderEngineWatcher(this) );
     QObject::connect( _imp->engineWatcher.get(), SIGNAL(taskFinished(int,GenericWatcherCallerArgsPtr)), this, SLOT(onWatcherEngineAbortedEmitted()) );
@@ -3556,7 +3557,7 @@ public:
 
         try {
             if (!_args->isRotoPaintRequest || _args->isRotoNeatRender) {
-                stat = _args->viewer->renderViewer(_args->view, QThread::currentThread() == qApp->thread(), false, _args->viewerHash, _args->canAbort,
+                stat = _args->viewer->renderViewer(_args->view, MainThread::isMainThread(), false, _args->viewerHash, _args->canAbort,
                                                    NodePtr(), true, _args->args, _args->request, _args->stats);
             } else {
                 stat = _args->viewer->getViewerArgsAndRenderViewer(_args->time, _args->canAbort, _args->view, _args->viewerHash, _args->isRotoPaintRequest, _args->strokeItem.lock(), _args->stats, &_args->args[0], &_args->args[1]);
@@ -3593,7 +3594,7 @@ public:
 #endif
             _args->scheduler->notifyFrameProduced(ret, _args->stats, _args->request->age);
         } else {
-            assert( QThread::currentThread() == qApp->thread() );
+            assert( MainThread::isMainThread() );
             _args->scheduler->processProducedFrame(_args->stats, ret);
         }
 
@@ -3745,7 +3746,7 @@ void
 ViewerCurrentFrameRequestSchedulerPrivate::processProducedFrame(const RenderStatsPtr& stats,
                                                                 const BufferableObjectPtrList& frames)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
     if ( !frames.empty() ) {
         viewer->aboutToUpdateTextures();

@@ -54,6 +54,7 @@ CLANG_DIAG_ON(uninitialized)
 
 #ifdef DEBUG
 #include "Global/FloatingPointExceptions.h"
+#include "Global/MainThread.h"
 #endif
 
 #include "AppManager.h" // appPTR & StrUtils
@@ -1286,7 +1287,7 @@ FileSystemModelPrivate::getItemFromPath(const QString &path) const
 bool
 FileSystemModel::setRootPath(const QString& path)
 {
-    assert( QThread::currentThread() == qApp->thread() );
+    assert( MainThread::isMainThread() );
 
 
     ///Check if the path exists

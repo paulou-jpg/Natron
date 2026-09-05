@@ -351,20 +351,71 @@ Two consequences worth settling either way:
   exists — the ``nuke.env['gui']`` pattern applied to one of the few remaining
   genuinely per-engine call sites.
 
-The related coupling
---------------------
+The related coupling: qApp
+--------------------------
 
-Separately from ``appPTR``, the core reaches the Qt *application object* 292
-times across ``Engine`` and ``Global``. The clearest instance is
-``Engine/ThreadStorage.h``, which keys the renderer's per-thread state off the
-existence of a GUI application::
+Separately from ``appPTR``, the core referenced the Qt *application object* 322
+times across ``Engine`` and ``Global``. Reading those references corrects the
+plan on two points.
+
+**The headline example is dead code.** ``Engine/ThreadStorage.h`` is cited as
+proof that the renderer's state machine is keyed off the existence of a GUI
+application, via::
 
     return ( qApp && QThread::currentThread() == qApp->thread() )
            || QThreadStorage<T>::hasLocalData();
 
-That is the render core's state machine depending on whether a GUI application
-exists. It belongs to the render-context step and is recorded here only so the
-two are not confused: removing ``appPTR`` does **not** remove this.
+Nothing includes that header and nothing instantiates ``ThreadStorage<>``. The
+similarly-named ``ClipsThreadStorageSetter`` and ``RenderThreadStorageSetter``
+in ``OfxEffectInstance.cpp`` are unrelated classes. The file is not in the
+render path.
+
+**The real thread-local storage does not touch qApp at all.** ``TLSHolder``,
+used by roughly ten files including ``OfxHost``, ``OfxClipInstance`` and
+``Node``, contains zero references to the application object. It does use
+``QThread*`` as a thread handle, which is Qt coupling and belongs to the
+"Qt out of the core" step, but that is not the same thing as depending on a
+GUI application.
+
+What the 322 references actually were:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 12 28
+
+   * - Shape
+     - Count
+     - Nature
+   * - ``QThread::currentThread() == qApp->thread()`` inside ``assert()``
+     - 221
+     - Debug-only; compiled out in release
+   * - The same comparison outside an assert
+     - ~22
+     - "Am I on the main thread"
+   * - ``qApp->thread()`` where the ``QThread*`` itself is wanted
+     - 36
+     - Genuine Qt use, e.g. ``moveToThread``
+   * - Everything else (``quit``, ``exec``, ``arguments``, app metadata)
+     - ~8
+     - Application lifecycle, correctly in ``AppManager``
+
+So the dominant use was one idiom asking a question with no inherent connection
+to Qt — *which thread am I on* — and most instances of it disappeared in
+release builds. ``Global/MainThread.h`` now answers it with
+``std::this_thread::get_id()``, and the count is down from 322 to 81.
+
+The remaining 81 are mostly the cases that genuinely want a ``QThread*``, plus
+application lifecycle in ``AppManager``. Those are ordinary Qt use rather than
+evidence of a GUI dependency in the renderer.
+
+.. note::
+
+   This does not mean the plan's conclusion is wrong, only its most vivid piece
+   of evidence. The engine still cannot run without ``AppManager``, and Qt is
+   still woven through the core. But "the render core's state machine is keyed
+   off the existence of a GUI application" overstated what the code did, and a
+   quarter of an afternoon's mechanical substitution removed three quarters of
+   it.
 
 Exit criterion
 --------------
