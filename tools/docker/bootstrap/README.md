@@ -5,15 +5,19 @@ establish a known-green baseline before build-system changes land.
 
 ## Why a container
 
-The Qt5 binding toolchain Natron currently depends on is no longer installable
-on a modern machine:
+The Qt5 binding toolchain cannot be installed from PyPI:
 
-- `shiboken6_generator` is not on PyPI at any version.
-- The PySide6 wheels ship runtime modules only — no CMake config, no headers,
-  no generator.
-- Ubuntu 24.04 removed the Qt5 `libshiboken2-dev` / `libpyside2-dev` packages.
+- `shiboken6_generator` is not on PyPI at any version — Qt publishes it only
+  through their own index.
+- The PySide wheels ship runtime modules only: no CMake config files, no
+  headers, no generator binary. `find_package(Shiboken2 CONFIG)` cannot succeed
+  against them.
 
-Ubuntu 22.04 is the last distro carrying them, so it is pinned here.
+So the toolchain has to come from a distribution package (or MacPorts/Homebrew).
+Ubuntu 22.04 is pinned here as a known-good baseline, matching what CI used
+before the CMake migration. 24.04 carries the same packages
+(`libshiboken2-dev`, `libpyside2-dev`, `qtbase5-dev` 5.15.13) and should also
+work; it simply has not been exercised.
 
 ## Usage
 

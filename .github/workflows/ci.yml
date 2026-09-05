@@ -32,9 +32,8 @@ jobs:
           submodules: recursive
 
       # The build runs inside tools/docker/bootstrap so CI and a developer
-      # machine compile in byte-identical environments. Ubuntu 22.04 is pinned
-      # in that image because it is the last release carrying the Qt5
-      # PySide2/Shiboken2 packages.
+      # machine compile in byte-identical environments, and so the job does not
+      # depend on what a hosted runner image happens to ship.
       - name: Build bootstrap image
         run: docker build -t natron-boot:ci tools/docker/bootstrap
 
