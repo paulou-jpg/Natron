@@ -1,0 +1,49 @@
+diff --git a/IOSupport/GenericOCIO.cpp b/IOSupport/GenericOCIO.cpp
+index 30ffb3b..ac27bb5 100644
+--- a/IOSupport/GenericOCIO.cpp
++++ b/IOSupport/GenericOCIO.cpp
+@@ -115,6 +115,10 @@ colorSpaceName(OCIO::ConstConfigRcPtr config,
+         if ((cs = config->getColorSpace("sRGB"))) {
+             // nuke-default, blender, natron
+             return cs->getName();
++        } else if ((cs = config->getColorSpace("Output - sRGB"))) {
++            // aces 1.0.3 and later (including 1.1 and 1.2) renamed the
++            // output colorspaces to "Output - *"
++            return cs->getName();
+         } else if ((cs = config->getColorSpace("sRGB D65"))) {
+             // blender-cycles
+             return cs->getName();
+@@ -149,6 +153,9 @@ colorSpaceName(OCIO::ConstConfigRcPtr config,
+         if ((cs = config->getColorSpace("Rec709"))) {
+             // nuke-default
+             return cs->getName();
++        } else if ((cs = config->getColorSpace("Output - Rec.709"))) {
++            // aces 1.0.3 and later (including 1.1 and 1.2)
++            return cs->getName();
+         } else if ((cs = config->getColorSpace("nuke_rec709"))) {
+             // blender
+             return cs->getName();
+@@ -198,6 +205,23 @@ colorSpaceName(OCIO::ConstConfigRcPtr config,
+         return cs->getName();
+     }
+ 
++    // The config does not name this colorspace. Rather than hand back a name
++    // it cannot resolve -- which fails the render with
++    // "Color space 'rec709' could not be found" -- fall back to the roles the
++    // config does define, the way Nuke derives its defaults from a config.
++    // A display-referred default maps to color_picking, which every ACES
++    // config defines as a displayable space (sRGB - Texture in ACES 1.2).
++    if ( !strcmp(colorSpaceNameDefault, "sRGB") || !strcmp(colorSpaceNameDefault, "srgb") ||
++         !strcmp(colorSpaceNameDefault, "Rec709") || !strcmp(colorSpaceNameDefault, "rec709") ||
++         !strcmp(colorSpaceNameDefault, "AdobeRGB") || !strcmp(colorSpaceNameDefault, "adobergb") ) {
++        if ( config->getColorSpace(OCIO::ROLE_COLOR_PICKING) ) {
++            return OCIO::ROLE_COLOR_PICKING;
++        }
++    }
++    if ( config->getColorSpace(OCIO::ROLE_DEFAULT) ) {
++        return OCIO::ROLE_DEFAULT;
++    }
++
+     // unlucky
+     return colorSpaceNameDefault;
+ } // colorSpaceName
