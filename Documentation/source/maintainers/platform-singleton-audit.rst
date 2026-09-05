@@ -132,20 +132,99 @@ inject than a full engine context.
 state, which belongs to the render-context step, not this one. They should be
 left alone here so the two refactors do not collide in the same files.
 
+Not all of it has to be injected
+--------------------------------
+
+Counting uses overstates the work, because much of what ``appPTR`` provides is
+genuinely **process-global** and can stay that way. The exit criterion is two
+independent *engines* in one process -- not the abolition of every global.
+
+Sorting the frequent calls by what they actually describe:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 46 12 42
+
+   * - Call
+     - Uses
+     - Nature
+   * - ``isBackground``, ``getAppType``
+     - 71
+     - How **this process** was started
+   * - ``getPluginBinary``, ``getPluginsList``, ``getPluginIDs``,
+       ``getReaderPluginIDForFileType``
+     - 26
+     - The installed plug-in registry: a property of the machine
+   * - ``getWGLData`` / ``getEGLData`` / ``getGLXData``, ``isOpenGLLoaded``,
+       ``initializeOpenGLFunctionsOnce``, ``isOnWayland``
+     - 52
+     - The process's graphics and windowing environment
+   * - ``writeToErrorLog_mt_safe``, ``setLoadingStatus``, ``hideSplashScreen``
+     - 50
+     - Diagnostics and startup progress
+   * - ``getHardwareIdealThreadCount``
+     - 5
+     - A property of the hardware
+   * - ``getMainModule``
+     - 6
+     - The embedded Python interpreter, one per process
+
+None of those prevent two engines from coexisting. They want to become
+ordinary services with clear ownership rather than reaching a god object, but
+that is tidying, not the refactor the plan is paying for.
+
+What genuinely blocks a second engine is much smaller:
+
+``getTopLevelInstance`` (17)
+    "The current app instance" is the singleton assumption stated directly.
+    Any caller of this cannot be made to work with two engines.
+``getCurrentSettings`` (209)
+    Blocking, but only partly -- see below.
+``removeFromNodeCache`` and the cache accessors (6+)
+    Whether the image cache is shared between engines or owned by each is a
+    real design decision, not a mechanical substitution.
+``getAppTLS`` (15)
+    Thread-local render state, belonging to the render-context step.
+
+.. warning::
+
+   **Settings cannot be substituted mechanically.** ``Settings`` is a single
+   object holding fourteen knob pages, and they are not one concern: threading,
+   rendering, GPU, caching, projects, plug-ins, OCIO and Python are engine
+   configuration, while UI, appearance and documentation are client
+   preferences. A blanket accessor -- the shortcut that worked for icons --
+   would silently encode "settings are process-global" for all of them, and
+   unpicking that later means revisiting all 209 call sites a second time
+   because each has to choose which half it wanted.
+
+   Split ``Settings`` into engine configuration and client preferences
+   **before** touching its call sites, not after.
+
 Suggested sequencing
 --------------------
 
 Ordered so that each step is independently reviewable and shrinks the next:
 
 1. **Icons out of the singleton** — 161 uses, ``Gui`` only, zero engine risk.
-   The natural first batch and a good calibration of how the shim behaves.
-2. **Settings as an injected service** — 209 uses across both modules; the
-   single largest win, and it establishes the injection pattern.
-3. **Run-mode and diagnostics** — ``isBackground``, ``writeToErrorLog_mt_safe``,
-   ``setLoadingStatus``, ``hideSplashScreen``.
-4. **The residue** — plug-in lookup, caches, GL context data. This is the part
-   that genuinely needs an explicit engine context.
-5. **Leave ``getAppTLS``** for the render-context work.
+   Done: they now go through ``Gui/NatronIcons.h``, so the dependency sits in
+   one translation unit instead of twenty-five.
+2. **Split ``Settings``** into engine configuration and client preferences.
+   No call sites change yet. This is design work, and it is the prerequisite
+   for the largest batch rather than part of it.
+3. **The engine-configuration half of ``Settings``**, injected through the
+   engine context. The client half can keep a global accessor.
+4. **``getTopLevelInstance``** — 17 uses, and the assumption that there is one
+   current engine stated in the open. Small, and the most direct progress
+   towards the exit criterion.
+5. **The cache** — decide whether it is shared or per-engine, then follow.
+6. **Process-global services** — run mode, diagnostics, plug-in registry, GL
+   environment. Give them clear ownership at leisure; they do not block a
+   second engine.
+7. **Leave ``getAppTLS``** for the render-context work.
+
+The reordering matters: the earlier draft put settings second because it is the
+biggest number. It is second-to-last in usefulness until it is split, and
+splitting it is what makes the batch safe.
 
 Throughout, keep the ``appPTR`` macro working behind a shim so that the tree
 builds after every batch, and delete it only when the last caller is gone.
