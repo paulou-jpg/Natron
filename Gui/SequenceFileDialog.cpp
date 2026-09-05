@@ -784,13 +784,14 @@ SequenceFileDialog::createMenuActions()
 {
     QAction *goHomeAction =  new QAction(this);
 
-    goHomeAction->setShortcut(Qt::CTRL + Qt::Key_H + Qt::SHIFT);
+    goHomeAction->setShortcut(Qt::CTRL | Qt::Key_H | Qt::SHIFT);
     QObject::connect( goHomeAction, SIGNAL(triggered()), this, SLOT(goHome()) );
     addAction(goHomeAction);
 
 
     QAction *goToParent =  new QAction(this);
-    goToParent->setShortcut(Qt::CTRL + Qt::UpArrow);
+    // Qt::UpArrow is a Qt::ArrowType, not a key: this was Ctrl plus keycode 1.
+    goToParent->setShortcut(Qt::CTRL | Qt::Key_Up);
     QObject::connect( goToParent, SIGNAL(triggered()), this, SLOT(parentFolder()) );
     addAction(goToParent);
 

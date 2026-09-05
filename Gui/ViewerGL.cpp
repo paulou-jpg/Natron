@@ -2076,18 +2076,25 @@ ViewerGL::tabletEvent(QTabletEvent* e)
     }
     switch ( e->type() ) {
     case QEvent::TabletPress: {
+        // Qt 6 moved these from QTabletEvent to QPointingDevice::PointerType.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#define NATRON_POINTER_TYPE(x) QPointingDevice::PointerType::x
+#else
+#define NATRON_POINTER_TYPE(x) QTabletEvent::x
+#endif
         switch ( e->pointerType() ) {
-        case QTabletEvent::Cursor:
+        case NATRON_POINTER_TYPE(Cursor):
             _imp->pointerTypeOnPress  = ePenTypeCursor;
             break;
-        case QTabletEvent::Eraser:
+        case NATRON_POINTER_TYPE(Eraser):
             _imp->pointerTypeOnPress  = ePenTypeEraser;
             break;
-        case QTabletEvent::Pen:
+        case NATRON_POINTER_TYPE(Pen):
         default:
             _imp->pointerTypeOnPress  = ePenTypePen;
             break;
         }
+#undef NATRON_POINTER_TYPE
         _imp->pressureOnPress = pressure;
         QOpenGLWidget::tabletEvent(e);
         break;
