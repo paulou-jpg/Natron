@@ -191,7 +191,7 @@ The following options can be passed to `launchBuildMain.sh` as environment varia
 
 `NATRON_BUILD_NUMBER`: When doing a release this is the number of the release (if doing a rebuild).
 
-`NATRON_EXTRA_QMAKE_FLAGS`: Optional qmake flags to pass when building Natron.
+`NATRON_EXTRA_CMAKE_FLAGS`: Optional CMake flags to pass when building Natron.
 
 `BUILD_NAME`: Set this to label the project build. On the slave, the build artifacts are stored for some amount of time in `$WORKSPACE/builds_archive/$BUILD_NAME/$BUILD_NUMBER`.
 

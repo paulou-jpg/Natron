@@ -266,15 +266,12 @@ breakpadpro.pri
 config.pri
 google-breakpad/
 libs/ceres/ceres.xcodeproj/
-libs/gflags/gflags.xcodeproj/
 libs/glog/glog.xcodeproj/
 libs/hoedown/hoedown.xcodeproj/
 libs/libmv/LibMV.xcodeproj/
 libs/libtess/libtess.xcodeproj/
 libs/libtess/tess.xcodeproj/
 libs/openMVG/openMVG.xcodeproj/
-libs/qhttpserver/qhttpserver.xcodeproj/
-libs/qhttpserver/src/qhttpserver.xcodeproj/
 libs/yaml-cpp/yaml-cpp-natron.xcodeproj/
 natron-python.xcodeproj/
 natron-python.xcodeproj/
@@ -301,3 +298,5 @@ moc_predefs.h
 # shiboken-generated files
 Engine/Qt5
 Gui/Qt5
+# vcpkg manifest-mode install tree
+vcpkg_installed/

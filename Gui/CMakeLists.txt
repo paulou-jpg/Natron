@@ -92,6 +92,53 @@ target_include_directories(NatronGui
 target_compile_definitions(NatronGui
     PRIVATE
         NATRON_CUSTOM_BUILD_USER_TOKEN="${BUILD_USER_NAME}"
-        NATRON_BUILD_NUMBER=0
         QT_NO_KEYWORDS
 )
+
+# ---------------------------------------------------------------------------
+# fontconfig configuration
+#
+# Ported from qmake: App.pro listed fonts.conf.in under QMAKE_SUBSTITUTES, and
+# global.pri built the FC_* directory lists per platform. The packaging scripts
+# copy the generated fonts.conf into the installer, so it must still be
+# produced -- but into the build tree, since the CMake build is out-of-source.
+if(APPLE)
+    set(FC_DEFAULT_FONTS
+        "<dir>/usr/local/share/fonts</dir>"           # Homebrew
+        "<dir>/opt/X11/share/fonts</dir>"             # XQuartz
+        "<dir>/opt/local/share/fonts</dir>"           # MacPorts
+        "<dir>/System/Library/Fonts</dir>"
+        "<dir>/Network/Library/Fonts</dir>"
+        "<dir>/Library/Fonts</dir>"
+        "<dir>~/Library/Fonts</dir>"
+        "<dir>/System/Library/Assets/com_apple_MobileAsset_Font3</dir>"
+        "<dir>/System/Library/Assets/com_apple_MobileAsset_Font4</dir>"
+        "<dir>/System/Library/Assets/com_apple_MobileAsset_Font5</dir>")
+    # There is no system-default cache directory on macOS.
+    set(FC_CACHEDIR "")
+elseif(WIN32)
+    set(FC_DEFAULT_FONTS
+        "<dir>WINDOWSFONTDIR</dir>"
+        # Windows 10 introduced user fonts, the preferred install location.
+        "<dir>~/AppData/Local/Microsoft/Windows/Fonts</dir>")
+    set(FC_CACHEDIR "<cachedir>LOCAL_APPDATA_FONTCONFIG_CACHE</cachedir>")
+else()
+    set(FC_DEFAULT_FONTS
+        "<dir>/usr/share/fonts</dir>"
+        "<dir>/usr/X11/lib/X11/fonts</dir>"
+        "<dir>/usr/X11R6/lib/X11/fonts</dir>"
+        "<dir>/usr/share/X11/fonts</dir>"
+        "<dir>/usr/local/share/fonts</dir>")
+    set(FC_CACHEDIR "<dir>/var/cache/fontconfig</dir>")
+endif()
+
+list(JOIN FC_DEFAULT_FONTS "\n\t" FC_DEFAULT_FONTS_TEXT)
+list(JOIN FC_CACHEDIR "\n\t" FC_CACHEDIR_TEXT)
+
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/Resources/etc/fonts/fonts.conf.in" NATRON_FONTS_CONF)
+string(REPLACE "$$FC_DEFAULT_FONTS" "${FC_DEFAULT_FONTS_TEXT}" NATRON_FONTS_CONF "${NATRON_FONTS_CONF}")
+string(REPLACE "$$FC_CACHEDIR"      "${FC_CACHEDIR_TEXT}"      NATRON_FONTS_CONF "${NATRON_FONTS_CONF}")
+# qmake's substitution also unescapes the quoting in the template.
+string(REPLACE "\\\"" "\"" NATRON_FONTS_CONF "${NATRON_FONTS_CONF}")
+string(REPLACE "\\'"  "'"  NATRON_FONTS_CONF "${NATRON_FONTS_CONF}")
+file(WRITE "${CMAKE_BINARY_DIR}/Gui/Resources/etc/fonts/fonts.conf" "${NATRON_FONTS_CONF}")

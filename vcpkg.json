@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "natron",
+  "version": "2.6.0",
+  "description": "Open Source Compositing Software",
+  "homepage": "https://natrongithub.github.io/",
+  "builtin-baseline": "7ff71c68261ecf3b60cdb8772f2e6759ee0a71b1",
+  "dependencies": [
+    "eigen3",
+    "glog"
+  ],
+  "features": {
+    "tests": {
+      "description": "Build the Natron test suite",
+      "dependencies": [
+        "gtest"
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "name": "eigen3",
+      "version": "3.4.0"
+    },
+    {
+      "name": "glog",
+      "version": "0.6.0",
+      "port-version": 3
+    }
+  ]
+}

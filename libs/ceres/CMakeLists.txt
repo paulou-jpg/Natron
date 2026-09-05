@@ -246,7 +246,7 @@ set(ceres_SOURCES
     internal/ceres/wall_time.cc
 )
 add_library(ceres STATIC ${ceres_HEADERS} ${ceres_SOURCES})
-target_include_directories(ceres PUBLIC ../Eigen3 ../glog/src config include internal)
+target_include_directories(ceres PUBLIC config include internal)
 target_compile_definitions(ceres
     PUBLIC
         CERES_HAVE_PTHREAD
@@ -258,6 +258,6 @@ target_compile_definitions(ceres
         CERES_STD_UNORDERED_MAP
         CERES_STD_SHARED_PTR
 )
-target_link_libraries(ceres PUBLIC glog::glog)
+target_link_libraries(ceres PUBLIC Eigen3::Eigen glog::glog)
 set_target_properties(ceres PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_library(Ceres::ceres ALIAS ceres)

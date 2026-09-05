@@ -16,6 +16,11 @@ PY_PKG_FILE="mingw-w64-x86_64-python-${PY_PKG}-any.pkg.tar.zst"
 PY_PKG_URL="https://repo.msys2.org/mingw/x86_64/${PY_PKG_FILE}"
 PACMAN_CACHE="/var/cache/pacman/pkg"
 
+# Standard-library packages to embed. Some entries are modules that only
+# became packages in a later release -- pathlib, string and sysconfig are all
+# plain .py files before Python 3.13/3.14 and directories afterwards -- so they
+# are listed here and picked up by the "*.py" copy below on older interpreters.
+# Entries absent from the running Python are skipped rather than fatal.
 PYDIRS="
 asyncio
 collections
@@ -33,9 +38,12 @@ lib2to3
 logging
 msilib
 multiprocessing
+pathlib
 pydoc_data
 re
 sqlite3
+string
+sysconfig
 tomllib
 unittest
 urllib
@@ -62,7 +70,15 @@ if [ ! -d "${SRC}" ]; then
 fi
 
 for dir in ${PYDIRS}; do
-    cp -a "${SRC}/${dir}" "${EMBED}/"
+    if [ -d "${SRC}/${dir}" ]; then
+        cp -a "${SRC}/${dir}" "${EMBED}/"
+    else
+        # The standard library changes between Python releases -- lib2to3 and
+        # msilib were both removed in 3.13, and msys2 tracks Python closely.
+        # Skip what this interpreter does not ship rather than failing the
+        # whole installer build.
+        echo "Note: ${dir} is not part of Python ${PYVER}, skipping it."
+    fi
 done
 
 mkdir -p "${EMBED}/site-packages"

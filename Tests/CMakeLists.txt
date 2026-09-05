@@ -19,8 +19,6 @@
 
 set(Tests_HEADERS BaseTest.h)
 set(Tests_SOURCES
-    google-test/src/gtest-all.cc
-    google-mock/src/gmock-all.cc
     BaseTest.cpp
     Curve_Test.cpp
     FileSystemModel_Test.cpp
@@ -39,14 +37,12 @@ target_link_libraries(Tests
         Qt::Core
         Python3::Python
         openMVG
+        GTest::gtest
+        GTest::gmock
 )
 target_include_directories(Tests
     PRIVATE
         ..
         ../libs/SequenceParsing
-        google-test/include
-        google-test
-        google-mock/include
-        google-mock
 )
 add_test(NAME Tests COMMAND Tests)

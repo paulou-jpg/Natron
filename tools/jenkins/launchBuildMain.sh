@@ -28,7 +28,7 @@ set -u # Treat unset variables as an error when substituting.
 # NATRON_DEV_STATUS: ALPHA, BETA, RC, STABLE, CUSTOM: this is useful when doing a release (i.e: if specifying RELEASE_TAG.)
 # NATRON_CUSTOM_BUILD_USER_NAME: For a release, Tag the build with a specific user/client name
 # NATRON_BUILD_NUMBER: When doing a release this is the number of the release (if doing a rebuild)
-# NATRON_EXTRA_QMAKE_FLAGS: Optional qmake flags to pass when building Natron
+# NATRON_EXTRA_CMAKE_FLAGS: Optional CMake flags to pass when building Natron
 # BUILD_NAME: Give a name to the build so that it can be found in the archive
 # DISABLE_RPM_DEB_PKGS: If set to 1, deb and rpm packages will not be built. Otherwise they are only built for a release
 # DISABLE_PORTABLE_ARCHIVE: If set to 1, a portable archive will not be built
@@ -111,7 +111,7 @@ echo "NATRON_DEV_STATUS                 : \"${NATRON_DEV_STATUS:-}\""
 echo "NATRON_BUILD_NUMBER               : \"${NATRON_BUILD_NUMBER:-}\""
 echo "NATRON_CUSTOM_BUILD_USER_NAME     : \"${NATRON_CUSTOM_BUILD_USER_NAME:-}\""
 echo "COMPILE_TYPE                      : \"${COMPILE_TYPE:-}\""
-echo "NATRON_EXTRA_QMAKE_FLAGS          : \"${NATRON_EXTRA_QMAKE_FLAGS:-}\""
+echo "NATRON_EXTRA_CMAKE_FLAGS          : \"${NATRON_EXTRA_CMAKE_FLAGS:-}\""
 echo "DISABLE_RPM_DEB_PKGS              : \"${DISABLE_RPM_DEB_PKGS:-}\""
 echo "DISABLE_PORTABLE_ARCHIVE          : \"${DISABLE_PORTABLE_ARCHIVE:-}\""
 echo "EXTRA_PYTHON_MODULES_SCRIPT       : \"${EXTRA_PYTHON_MODULES_SCRIPT:-}\""
@@ -352,7 +352,7 @@ echo "TYPE is $TYPE"
 
 # Can be set to relwithdebinfo, release, debug
 setBuildOption "COMPILE_TYPE" "$COMPILE_TYPE"
-setBuildOption "NATRON_EXTRA_QMAKE_FLAGS" "${NATRON_EXTRA_QMAKE_FLAGS:-}"
+setBuildOption "NATRON_EXTRA_CMAKE_FLAGS" "${NATRON_EXTRA_CMAKE_FLAGS:-}"
 
 setBuildOption "BUILD_TYPE" "$TYPE"
 
@@ -559,7 +559,12 @@ setBuildOption "NATRON_VERSION_STRING" "$NATRON_VERSION_STRING"
 # Name of the installer directory, common to all platforms
 INSTALLER_BASENAME="Natron"
 if [ "$NATRON_BUILD_CONFIG" = "SNAPSHOT" ]; then
-    INSTALLER_BASENAME="${INSTALLER_BASENAME}-${NATRON_GIT_BRANCH}-${CURRENT_DATE}"
+    # The branch name ends up in file and directory names, but git happily
+    # allows characters that are path separators or are illegal in Windows
+    # filenames -- "feature/foo" is an ordinary branch name and would otherwise
+    # be treated as a subdirectory. Flatten those to dashes.
+    NATRON_GIT_BRANCH_SAFE=$(echo "$NATRON_GIT_BRANCH" | tr '/\\:*?"<>|' '-')
+    INSTALLER_BASENAME="${INSTALLER_BASENAME}-${NATRON_GIT_BRANCH_SAFE}-${CURRENT_DATE}"
 fi
 
 INSTALLER_OS="${PKGOS}"

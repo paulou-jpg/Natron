@@ -36,37 +36,14 @@ Open source compositing software. Node-graph based. Similar in functionalities t
 
 %build
 mv Natron-OpenColorIO-Configs-2.1.0 OpenColorIO-Configs
-cat << 'EOF' > config.pri
-boost: LIBS += -lboost_serialization
-PKGCONFIG += expat
-PKGCONFIG += fontconfig
-cairo {
-        PKGCONFIG += cairo
-        LIBS -=  $$system(pkg-config --variable=libdir cairo)/libcairo.a
-}
-pyside {
-        PKGCONFIG -= pyside
-        INCLUDEPATH += $$system(pkg-config --variable=includedir pyside)
-        INCLUDEPATH += $$system(pkg-config --variable=includedir pyside)/QtCore
-        INCLUDEPATH += $$system(pkg-config --variable=includedir pyside)/QtGui
-        INCLUDEPATH += $$system(pkg-config --variable=includedir QtGui)
-        LIBS += -lpyside-python2.7
-}
-shiboken {
-        PKGCONFIG -= shiboken
-        INCLUDEPATH += $$system(pkg-config --variable=includedir shiboken)
-        LIBS += -lshiboken-python2.7
-}
-EOF
-
 mkdir build
 cd build
-qmake-qt4 -r ../Project.pro PREFIX=/usr CONFIG+=release DEFINES+=QT_NO_DEBUG_OUTPUT
-make %{?_smp_mflags}
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DNATRON_NO_ASSERTIONS=ON
+cmake --build . %{?_smp_mflags}
 
 %install
 cd build
-make INSTALL_ROOT=%{buildroot} install
+DESTDIR=%{buildroot} cmake --install .
 
 %clean
 %{__rm} -rf %{buildroot}

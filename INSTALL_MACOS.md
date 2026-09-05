@@ -360,138 +360,61 @@ curl -k -L https://github.com/NatronGitHub/OpenColorIO-Configs/archive/Natron-v2
 mv OpenColorIO-Configs-Natron-v2.5 OpenColorIO-Configs
 ```
 
-## Building with qmake (for Qt4 and Qt5)
+## Building
 
-### Add the config.pri file
+Natron builds with CMake. Dependencies declared in `vcpkg.json` are resolved by
+[vcpkg](https://vcpkg.io) in manifest mode; Qt, Python and Shiboken/PySide come
+from Homebrew or MacPorts and are found by `find_package`.
 
-You have to define the locations of the required libraries.
-This is done by creating a .pri file that will tell the .pro where to find those libraries.
-The only library to put in the config.pri file on unix systems is boost.
-For all other libraries are found with PKGConfig.
-
-- create the config.pri file next to the Project.pro file.
-
-You can fill it with the following proposed code to point to the libraries.
-Of course you need to provide valid paths that are valid on your system.
-
-INCLUDEPATH is the path to the include files
-
-LIBS is the path to the libs
-
-If you installed libraries using MacPorts, use the following
-config.pri:
+Set `VCPKG_ROOT` to your vcpkg checkout, then use one of the presets from
+`CMakePresets.json`:
 
 ```Shell
-# copy and paste the following in a terminal
-cp config-macports.pri config.pri
+export VCPKG_ROOT=/path/to/vcpkg
+cmake --preset release
+cmake --build --preset release
 ```
 
-If you installed libraries using Homebrew, use the following
-config.pri:
+Use `--preset debug` for a debug build, or `--preset release-qt6` to build
+against Qt 6 / PySide6 instead of Qt 5 / PySide2.
+
+### On Homebrew
+
+Homebrew installs Qt and PySide outside the default search paths, so point
+CMake at them:
 
 ```Shell
-# copy and paste the following in a terminal
-cp config-homebrew.pri config.pri
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+  -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/expat;/opt/homebrew/opt/qt@5;/opt/homebrew/opt/pyside@2" \
+  -DPYTHON_FRAMEWORK_LIBRARIES=/opt/homebrew/Frameworks/Python.framework/Versions/3.9/lib
+cmake --build build --parallel 2
 ```
 
-Then check at the top of the `config.pri` file that the `HOMEBREW` variable is set to the homebrew installation prefix (usually `/opt/homebrew`).
-
-### Build with Makefile
-
-You can generate a makefile by opening a Terminal, setting the current
-directory to the toplevel source directory, and typing
+### On MacPorts
 
 ```Shell
-qmake -r
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+  -DCMAKE_PREFIX_PATH="/opt/local/libexec/qt5;/opt/local"
+cmake --build build --parallel 2
 ```
 
-then type
-
-```Shell
-make
-```
-
-This will create all binaries in all the subprojects folders.
-
-If you want to build in DEBUG mode change the qmake call to this line:
-
-```Shell
-qmake -r CONFIG+=debug
-```
-
-* You can also enable logging by adding CONFIG+=log
-
-* You can also enable clang sanitizer by adding CONFIG+=sanitizer
-
-#### Building with OpenMP support using clang
-
-It is possible to build Natron using clang (version 3.8 is required,
-version 9.0 is recommended) with OpenMP support on
-MacPorts (or Homebrew for OS X 10.9 or later).  OpenMP brings speed improvements in the
-tracker and in CImg-based plugins.
-
-First, install clang 9.0. On OS X 10.9 and later with MacPorts, simply execute:
-
-```Shell
-sudo port -v install clang-9.0
-```
-
-Or with Homebrew:
-
-```Shell
-brew install llvm
-```
-
-On older systems, follow the procedure described in "[https://trac.macports.org/wiki/LibcxxOnOlderSystems](Using libc++ on older system)", and install and set clang-9.0 as the default compiler in the end. Note that we noticed clang 3.9.1 generates wrong code with `-Os` when compiling openexr (later clang versions were not checked), so it is safer to also change `default configure.optflags      {-Os}` to `default configure.optflags      {-O2}` in `/opt/local/libexec/macports/lib/port1.0/portconfigure.tcl` (type `sudo nano /opt/local/libexec/macports/lib/port1.0/portconfigure.tcl` to edit it).
-
-The libtool that comes with OS X 10.6 does not work well with clang-generated binaries, and you may have to `sudo mv /usr/bin/libtool /usr/bin/libtool.orig; sudo mv /Developer/usr/bin/libtool /Developer/usr/bin/libtool.orig; sudo ln -s /opt/local/bin/libtool /usr/bin/libtool; sudo ln -s /opt/local/bin/libtool /Developer/usr/bin/libtool`
-
-Then, configure using the following qmake command on MacPorts:
-
-```Shell
-/opt/local/libexec/qt4/bin/qmake QMAKE_CXX='clang++-mp-9.0 -stdlib=libc++' QMAKE_CC=clang-mp-9.0 QMAKE_OBJECTIVE_CXX='clang++-mp-9.0 -stdlib=libc++' QMAKE_OBJECTIVE_CC='clang-mp-9.0 -stdlib=libc++' QMAKE_LD='clang++-mp-9.0 -stdlib=libc++' -r CONFIG+=openmp CONFIG+=enable-osmesa CONFIG+=enable-cairo
-```
-
-Or on Homebrew with Qt4/PySide from cartr/qt4:
-
-```Shell
-QT_INSTALL_PREFIX=/usr/local
-qmake=$QT_INSTALL_PREFIX/bin/qmake
-env PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig:/usr/local/opt/cairo/lib/pkgconfig:/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/opt/expat/lib/pkgconfig $qmake -spec macx-xcode CONFIG+=debug CONFIG+=enable-cairo CONFIG+=enable-osmesa CONFIG+=python3 CONFIG+=sdk_no_version_check CONFIG+=openmp -r
-```
-
-Or on Homebrew with Qt5/PySide2:
-
-```Shell
-QT_INSTALL_PREFIX=/usr/local/opt/qt@5
-qmake=$QT_INSTALL_PREFIX/bin/qmake
-env PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig:/usr/local/opt/cairo/lib/pkgconfig:/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/opt/expat/lib/pkgconfig:/usr/local/opt/qt@5/lib/pkgconfig:/usr/local/opt/pyside@2/lib/pkgconfig $qmake -spec macx-xcode CONFIG+=debug CONFIG+=enable-cairo CONFIG+=enable-osmesa CONFIG+=python3 CONFIG+=sdk_no_version_check CONFIG+=openmp -r
-```
-
-To build the plugins, use the following command-line:
-
-```Shell
-make CXX='clang++-mp-9.0 -stdlib=libc++' OPENMP=1
-```
-
-Or, if you have MangledOSMesa32 installed in `OSMESA_PATH` and LLVM installed in `LLVM_PATH` (MangledOSMesa32 and LLVM build script is available from [https://github.com/devernay/osmesa-install](github:devernay/osmesa-install) :
-
-```Shell
-OSMESA_PATH=/opt/osmesa
-LLVM_PATH=/opt/llvm
-make CXX='clang++-mp-9.0 -stdlib=libc++' OPENMP=1 CXXFLAGS_MESA="-DHAVE_OSMESA" LDFLAGS_MESA="-L${OSMESA_PATH}/lib -lMangledOSMesa32 `${LLVM_PATH}/bin/llvm-config --ldflags --libs engine mcjit mcdisassembler | tr '\n' ' '`" OSMESA_PATH="${OSMESA_PATH}"
-```
+Useful options: `-DNATRON_QT6=ON`, `-DNATRON_BUILD_TESTS=OFF`,
+`-DNATRON_BREAKPAD=ON`, `-DNATRON_OPENMP=ON`, `-DNATRON_NO_ASSERTIONS=ON`.
 
 ### Build on Xcode
 
-Follow the instruction of build but
-add -spec macx-xcode to the qmake call command:
+Generate an Xcode project with the Xcode generator:
 
 ```Shell
-qmake -r -spec macx-xcode
+cmake -S . -B build-xcode -G Xcode \
+  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 ```
 
-Then open the already provided Project-xcode.xcodeproj and compile the target "all"
+Then open `build-xcode/Natron.xcodeproj` and build the `ALL_BUILD` target.
 
 #### Compiling plugins with Xcode
 
@@ -517,76 +440,12 @@ It is also recommended in Xcode Preferences, select "Locations", then
 the advanced settings to set the build location to Legacy (if not,
 build files are somewhere under `~/Library/Developer/Xcode`.
 
-#### Build on Xcode with openmp clang
-
-See instructions under "Using clang-omp with Xcode" at the following page https://clang-omp.github.io
-
-On Macports clang now ships with openmp by default. To install it:
-```
-sudo port install clang-9.0
-```
-
-In your config.pri file, add the following lines and change the paths according to your installation of clang
-
-```
-openmp {
-INCLUDEPATH += /opt/local/include/libomp
-LIBS += -L/opt/local/lib/libomp -liomp5 # may also be -lomp
-
-cc_setting.name = CC
-cc_setting.value = /opt/local/bin/clang-mp-9.0
-cxx_setting.name = CXX
-cxx_setting.value = /opt/local/bin/clang++-mp-9.0 -stdlib=libc++
-ld_setting.name = LD
-ld_setting.value = /opt/local/bin/clang-mp-9.0
-ldplusplus_setting.name = LDPLUSPLUS
-ldplusplus_setting.value = /opt/local/bin/clang++-mp-9.0 -stdlib=libc++
-QMAKE_MAC_XCODE_SETTINGS += cc_setting cxx_setting ld_setting ldplusplus_setting
-QMAKE_LFLAGS += "-B /usr/bin"
-}
-```
-
-The qmake call should add CONFIG+=openmp
-
-```
-qmake -r -spec macx-xcode CONFIG+=debug CONFIG+=enable-osmesa LLVM_PATH=/opt/llvm OSMESA_PATH=/opt/osmesa CONFIG+=openmp QMAKE_CXX='clang++-mp-9.0 -stdlib=libc++' QMAKE_CC=clang-mp-9.0 QMAKE_OBJECTIVE_CXX='clang++-mp-9.0 -stdlib=libc++' QMAKE_OBJECTIVE_CC='clang-mp-9.0 -stdlib=libc++' QMAKE_LD='clang++-mp-9.0 -stdlib=libc++' -r CONFIG+=openmp CONFIG+=enable-osmesa CONFIG+=enable-cairo
-```
-
-
-Then you can just build and run using Xcode
-
-#### Xcode caveats
-
-Whenever the .pro files change, Xcode will try to launch qmake and
-probably fail because it doesn't find the necessary binaries (qmake,
-moc, pkg-config, python3-config, etc.). In this case, just open a
-Terminal and relaunch the above command. This will rebuild the Xcode projects.
-
-Alternatively, you can globally add the necessary directories
-(`/usr/local/bin`on Homebrew, `/opt/local/bin` on MacPorts) to you
-PATH (see <http://www.emacswiki.org/emacs/EmacsApp> for instructions).
-
-On MacPorts, this would look like:
-
-```Shell
-launchctl setenv PATH /opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin
-```
-
-## Building with cmake (Qt5 only)
-
-### On homebrew
-
-```Shell
-mkdir build
-cd build
-cmake .. -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/expat;/opt/homebrew/opt/qt@5;/opt/homebrew/opt/pyside@2" -DPYTHON_FRAMEWORK_LIBRARIES=/opt/homebrew/Frameworks/Python.framework/Versions/3.9/lib
-make -j
-```
-
 ## Testing
 
 ```Shell
-(cd Tests && qmake -r CONFIG+=debug CONFIG+=coverage && make -j4 && ./Tests)
+cmake --preset debug
+cmake --build --preset debug
+ctest --preset debug
 ```
 
 ## Generating Python bindings

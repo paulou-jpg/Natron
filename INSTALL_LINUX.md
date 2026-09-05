@@ -27,7 +27,7 @@ This file is supposed to guide you step by step to have working (compiling) vers
 2. [Configuration](#configuration)
     - [OpenFX](#openfx)
     - [OpenColorIO-Configs](#download-opencolorio-configs)
-    - [config.pri](#configpri)
+    - [Dependencies](#dependencies)
     - [Nodes](#nodes)
 3. [Build](#build)
 4. [Distribution specific](#distribution-specific)
@@ -168,94 +168,62 @@ mv OpenColorIO-Configs-Natron-v2.4 OpenColorIO-Configs
 cd OpenColorIO-Configs && rm -v !("blender"|"blender-cycles"|"natron"|"nuke-default") -R
 ```
 
-### config.pri
+### Dependencies
 
-The `config.pri` is used to define the locations of the dependencies. It is probably the most
-confusing part of the build process.
+Dependency locations no longer need to be described by hand. `vcpkg.json`
+declares the third-party packages resolved by
+[vcpkg](https://vcpkg.io) in manifest mode, and everything else (Qt, Python,
+Shiboken/PySide, Boost, expat, cairo) is located by CMake's `find_package`.
 
-Create a `config.pri` file next to the `Project.pro` that will tell the .pro file
-where to find those libraries.
-
-You can fill it with the following proposed code to point to the libraries.
-Of course you need to provide valid paths that are valid on your system.
-
-You can find more examples specific to distributions below.
-
-`INCLUDEPATH` is the path to the include files.
-
-`LIBS` is the path to the libs.
-
-`PKGCONFIG` is the pkg-config.
-
-An example configuration for a Qt4 build might be
+Set `VCPKG_ROOT` to your vcpkg checkout before configuring:
 
 ```
------ copy and paste the following in a terminal -----
-cat > config.pri << EOF
-boost-serialization-lib: LIBS += -lboost_serialization
-boost: LIBS += -lboost_thread -lboost_system
-expat: LIBS += -lexpat
-expat: PKGCONFIG -= expat
-pyside: PYSIDE_PKG_CONFIG_PATH = $$system($$PYTHON_CONFIG --prefix)/lib/pkgconfig:$$(PKG_CONFIG_PATH)
-pyside: PKGCONFIG += pyside
-pyside: INCLUDEPATH += $$system(env PKG_CONFIG_PATH=$$PYSIDE_PKG_CONFIG_PATH pkg-config --variable=includedir pyside)/QtCore
-pyside: INCLUDEPATH += $$system(env PKG_CONFIG_PATH=$$PYSIDE_PKG_CONFIG_PATH pkg-config --variable=includedir pyside)/QtGui
-EOF
------ end -----
-```
-
-### Nodes
-
-Natron's nodes are contained in separate repositories. To use the default nodes, you must also build the following repositories:
-
-- [NatronGitHub/openfx-misc](https://github.com/NatronGitHub/openfx-misc)
-- [NatronGitHub/openfx-io](https://github.com/NatronGitHub/openfx-io)
-
-
-You'll find installation instructions in the README of both these repositories. Both openfx-misc and openfx-io have submodules as well.
-
-Plugins can be installed in /usr/OFX/Plugins on Linux
-Or in a directory named "Plugins" located in the parent directory where the binary lies, e.g.:
-
-```
-bin/
-    Natron
-Plugins/
-    IO.ofx.bundle
+export VCPKG_ROOT=/path/to/vcpkg
 ```
 
 # Build
 
-To build, go into the Natron directory and type:
+Natron builds with CMake. `CMakePresets.json` provides ready-made
+configurations; from the Natron directory:
 
 ```
-qmake -r
-make
+cmake --preset release
+cmake --build --preset release
 ```
 
-If everything has been installed and configured correctly, it should build without errors.
-In case you have many versions of Qt installed qmake can generate errors, you can try for a Qt5 build
+If everything has been installed and configured correctly, it should build
+without errors. For a debug build:
 
 ```
-QT_SELECT=5 qmake -r
-make
+cmake --preset debug
+cmake --build --preset debug
 ```
 
-If you want to build in DEBUG mode change the qmake call to this line:
+To build against Qt 6 rather than Qt 5:
 
 ```
-qmake -r CONFIG+=debug
+cmake --preset release-qt6
+cmake --build --preset release-qt6
 ```
 
-In case for compiling with Clang:
+Without presets, configure manually — this is also how to pick a compiler:
 
 ```
-qmake -r -spec linux-clang
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+  -DCMAKE_CXX_COMPILER=clang++
+cmake --build build
 ```
 
-Some debug options are available for developers of Natron and you can see them in the
-`global.pri` file. To enable an option just add `CONFIG+=<option>` in the `qmake` call.
+Useful options: `-DNATRON_QT6=ON` (Qt 6), `-DNATRON_BUILD_TESTS=OFF`,
+`-DNATRON_BREAKPAD=ON` (crash reporter), `-DNATRON_OPENMP=ON`,
+`-DNATRON_NO_ASSERTIONS=ON`. See `Documentation/source/maintainers/building.rst`
+for the full list.
 
+> **Memory note.** Several `Gui` translation units need well over 1 GB in
+> `cc1plus`. On a machine with 8 GB or less, build with `--parallel 2` rather
+> than one job per core, or the OOM killer will terminate the compiler.
 
 # Distribution specific
 
@@ -304,60 +272,26 @@ And make a build folder:
 mkdir build && cd build
 ```
 
-At this point, you might need the `config.pri` in case you have to pass some options to the build via the config file. On every operating system and distro this will be different, including for Arch Linux. First, make it by running this command:
+Configure with CMake, tagging the build as an Arch Linux custom build:
 
 ```
-touch ../config.pri
+cmake -S .. -B . -G Ninja \
+  -DCMAKE_INSTALL_PREFIX=/usr \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+  -DNATRON_DEV_STATUS=CUSTOM \
+  -DBUILD_USER_NAME="Arch Linux" \
+  -DNATRON_OPENMP=ON \
+  -DNATRON_NO_ASSERTIONS=ON
+
+# or in case you want to use Clang, add:
+#   -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 ```
 
-Now, open `../config.pri` with any editor and modify it to your preference. For example you can pass options like this:
+Last, compile:
 
 ```
-CONFIG += custombuild
-CONFIG += openmp
-DEFINES += QT_NO_DEBUG_OUTPUT
-```
-
-In case of a Qt4 you should paste in these lines to the empty file. **A template `config.pri` is available [here](./build-configs/arch-linux/config.pri)**. Here are some recommended instructions to do so:
-
-```
-# These are the lines you should paste into your empty `config.pri`
-boost: LIBS += -lboost_serialization
-expat: LIBS += -lexpat
-expat: PKGCONFIG -= expat
-cairo {
-        PKGCONFIG += cairo
-        LIBS -=  $$system(pkg-config --variable=libdir cairo)/libcairo.a
-}
-pyside {
-        PKGCONFIG -= pyside
-        INCLUDEPATH += $$system(pkg-config --variable=includedir pyside-py2)
-        INCLUDEPATH += $$system(pkg-config --variable=includedir pyside-py2)/QtCore
-        INCLUDEPATH += $$system(pkg-config --variable=includedir pyside-py2)/QtGui
-        INCLUDEPATH += $$system(pkg-config --variable=includedir QtGui)
-        LIBS += -lpyside-python2.7
-}
-shiboken {
-        PKGCONFIG -= shiboken
-        INCLUDEPATH += $$system(pkg-config --variable=includedir shiboken-py2)
-        LIBS += -lshiboken-python2.7
-}
-```
-
-You're now all set to compile. Use `qmake` to generate a Makefile for final compiling, like this:
-
-```
-qmake -r ../Project.pro PREFIX=/usr BUILD_USER_NAME="Arch Linux" CONFIG+=custombuild CONFIG+=openmp DEFINES+=QT_NO_DEBUG_OUTPUT QMAKE_CFLAGS_RELEASE="${CFLAGS}" QMAKE_CXXFLAGS_RELEASE="${CXXFLAGS}" QMAKE_LFLAGS_RELEASE="${LDFLAGS}"
-
-# or in case you want to use Clang
-
-qmake -r ../Project.pro -spec linux-clang PREFIX=/usr BUILD_USER_NAME="Arch Linux" CONFIG+=custombuild CONFIG+=openmp DEFINES+=QT_NO_DEBUG_OUTPUT QMAKE_CFLAGS_RELEASE="${CFLAGS}" QMAKE_CXXFLAGS_RELEASE="${CXXFLAGS}" QMAKE_LFLAGS_RELEASE="${LDFLAGS}"
-```
-
-Last, compile with `make`:
-
-```
-make
+cmake --build . --parallel 2
 ```
 
 The binaries will be found in the `build/App` folder. In order to launch Natron after compiling, simply do `./App/Natron`, and you can then start using Natron!
@@ -384,21 +318,6 @@ For most Debian/Ubuntu-based systems, install the required packages:
 
 ```
 sudo apt install qt5base-dev libboost-serialization-dev libboost-system-dev libexpat1-dev libcairo2-dev python3-dev python3-pyside2 libpyside2-dev libshiboken2-dev
-```
-
-For the Qt4 config.pri use:
-
-```
-boost-serialization-lib: LIBS += -lboost_serialization
-boost: LIBS += -lboost_thread -lboost_system
-expat: LIBS += -lexpat
-expat: PKGCONFIG -= expat
-cairo: PKGCONFIG -= cairo
-
-pyside: PYSIDE_PKG_CONFIG_PATH = $$system($$PYTHON_CONFIG --prefix)/lib/pkgconfig:$$(PKG_CONFIG_PATH)
-pyside: PKGCONFIG += pyside
-pyside: INCLUDEPATH += $$system(env PKG_CONFIG_PATH=$$PYSIDE_PKG_CONFIG_PATH pkg-config --variable=includedir pyside)/QtCore
-pyside: INCLUDEPATH += $$system(env PKG_CONFIG_PATH=$$PYSIDE_PKG_CONFIG_PATH pkg-config --variable=includedir pyside)/QtGui
 ```
 
 for Linux Mint you will need to add:
@@ -447,29 +366,6 @@ yum install fontconfig-devel gcc-c++ expat-devel python-pyside2-devel shiboken2-
 or
 ```
 dnf install fontconfig-devel gcc-c++ expat-devel python-pyside2-devel shiboken2-devel qt5-qtbase-devel boost-devel pixman-devel cairo-devel
-```
-
-Qt4 config.pri:
-```pri
-boost-serialization-lib: LIBS += -lboost_serialization
-boost: LIBS += -lboost_thread -lboost_system
-PKGCONFIG += expat
-PKGCONFIG += fontconfig
-cairo {
-        PKGCONFIG += cairo
-        LIBS -=  $$system(pkg-config --variable=libdir cairo)/libcairo.a
-}
-pyside {
-        PYSIDE_PKG_CONFIG_PATH = $$system($$PYTHON_CONFIG --prefix)/lib/pkgconfig:$$(PKG_CONFIG_PATH)
-        PKGCONFIG += pyside
-        INCLUDEPATH += $$system(env PKG_CONFIG_PATH=$$PYSIDE_PKG_CONFIG_PATH pkg-config --variable=includedir pyside)/QtCore
-        INCLUDEPATH += $$system(env PKG_CONFIG_PATH=$$PYSIDE_PKG_CONFIG_PATH pkg-config --variable=includedir pyside)/QtGui
-}
-shiboken {
-        PKGCONFIG -= shiboken
-        INCLUDEPATH += $$system(pkg-config --variable=includedir shiboken)
-        LIBS += -lshiboken-python2.7
-}
 ```
 
 # Generating Python bindings

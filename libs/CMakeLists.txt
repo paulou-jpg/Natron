@@ -17,15 +17,16 @@
 # along with Natron.  If not, see <http://www.gnu.org/licenses/gpl-2.0.html>
 # ***** END LICENSE BLOCK *****
 
-if(NOT glog_FOUND)
-    add_subdirectory(gflags)
-    add_subdirectory(glog)
-endif()
+# Remaining in-tree third-party code, and why each one is still here:
+#   ceres    - pinned to 1.12; libmv uses the pre-2.2 LocalParameterization API
+#   libmv    - no upstream package exists
+#   openMVG  - v0.9 plus four Natron patches, two of them Natron-authored
+#   libtess  - a Natron fork of the SGI GLU tessellator
+#   hoedown  - no vcpkg port exists
+#   qhttpserver - no vcpkg port exists; backs Gui/DocumentationManager
 add_subdirectory(hoedown)
 add_subdirectory(libtess)
-if(NOT Ceres_FOUND)
-    add_subdirectory(ceres)
-endif()
+add_subdirectory(ceres)
 add_subdirectory(libmv)
 add_subdirectory(openMVG)
 add_subdirectory(qhttpserver)

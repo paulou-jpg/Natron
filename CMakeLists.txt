@@ -31,8 +31,20 @@ set(CMAKE_CXX_STANDARD 17)
 include(GNUInstallDirs)
 
 option(NATRON_QT6 "use Qt6" OFF)
-option(NATRON_SYSTEM_LIBS "use system versions of dependencies instead of bundled ones" OFF)
 option(NATRON_BUILD_TESTS "build the Natron test suite" ON)
+option(NATRON_BREAKPAD "build the breakpad crash reporter" OFF)
+option(NATRON_OPENMP "build with OpenMP enabled" OFF)
+option(NATRON_NO_ASSERTIONS "disable assertions and Qt debug output (release builds)" OFF)
+
+# Build identification. These mirror global.pri's CONFIG+=snapshot/alpha/beta/RC/
+# stable flags and its BUILD_NUMBER / BUILD_USER_NAME variables, so that
+# tools/jenkins/build-natron.sh produces identically-tagged binaries under CMake.
+set(NATRON_DEV_STATUS "" CACHE STRING
+    "Release status: SNAPSHOT, ALPHA, BETA, RC, STABLE, CUSTOM, or empty")
+set_property(CACHE NATRON_DEV_STATUS PROPERTY STRINGS
+    "" SNAPSHOT ALPHA BETA RC STABLE CUSTOM)
+set(NATRON_BUILD_NUMBER 0 CACHE STRING "Build number for ALPHA/BETA/RC builds")
+set(BUILD_USER_NAME "" CACHE STRING "User/client name shown by a CUSTOM build")
 
 set(IS_DEBUG_BUILD OFF)
 if(CMAKE_BUILD_TYPE MATCHES "^(debug|Debug|DEBUG)$")
@@ -108,6 +120,25 @@ if(IS_DEBUG_BUILD AND WIN32)
     set_property(TARGET ${SHIBOKEN_LIB} PROPERTY INTERFACE_COMPILE_DEFINITIONS SHIBOKEN_DEFS)
 endif()
 
+if(NATRON_DEV_STATUS STREQUAL "CUSTOM")
+    if(BUILD_USER_NAME STREQUAL "")
+        message(FATAL_ERROR "BUILD_USER_NAME must be set when NATRON_DEV_STATUS=CUSTOM")
+    endif()
+elseif(NOT NATRON_DEV_STATUS STREQUAL "")
+    add_compile_definitions(NATRON_CONFIG_${NATRON_DEV_STATUS})
+endif()
+add_compile_definitions(NATRON_BUILD_NUMBER=${NATRON_BUILD_NUMBER})
+
+if(NATRON_NO_ASSERTIONS)
+    # See http://doc.qt.io/qt-4.8/debug.html
+    add_compile_definitions(NDEBUG QT_NO_DEBUG QT_NO_DEBUG_OUTPUT QT_NO_WARNING_OUTPUT)
+endif()
+
+if(NATRON_OPENMP)
+    find_package(OpenMP REQUIRED)
+    link_libraries(OpenMP::OpenMP_CXX)
+endif()
+
 #Since in Natron and OpenFX all strings are supposed UTF-8 and that the constructor
 #for QString(const char*) assumes ASCII strings, we may run into troubles
 add_compile_definitions(QT_NO_CAST_FROM_ASCII)
@@ -125,12 +156,25 @@ else()
     endif()
 endif()
 
-if(NATRON_SYSTEM_LIBS)
-    find_package(glog)
-    find_package(Ceres)
-endif()
+# Eigen and glog are supplied by the package manager (see vcpkg.json); the
+# in-tree copies have been removed. Both are pinned in the manifest: the
+# bundled Eigen was 3.3.7 against a vcpkg default of 5.0.1, and the bundled
+# glog was 0.3.4 against a default of 0.7.1, which moved LogMessageVoidify out
+# of namespace google and so breaks libmv/logging/logging.h.
+#
+# Ceres deliberately stays vendored at 1.12: libmv calls
+# ceres::LocalParameterization (libs/libmv/libmv/simple_pipeline/modal_solver.cc),
+# which was removed in Ceres 2.2. Porting libmv to the Manifold API is a
+# separate piece of work from the build system.
+find_package(Eigen3 3.4 CONFIG REQUIRED)
+find_package(glog CONFIG REQUIRED)
 
 if(UNIX AND NOT APPLE)
+    # Portable archive layout: binaries land in bin/, their libraries in lib/.
+    # Ported from tools/jenkins/include/natron/Linux.pri.
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+    set(CMAKE_BUILD_RPATH "$ORIGIN/../lib")
+
     find_package(ECM NO_MODULE)
     set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${CMAKE_MODULE_PATH})
     find_package(X11 REQUIRED)
@@ -138,6 +182,12 @@ if(UNIX AND NOT APPLE)
 elseif(APPLE)
     enable_language(OBJCXX)
 elseif(WIN32)
+    # --build-id is required by the breakpad stackwalker (mingw + binutils 2.25+).
+    # Ported from tools/jenkins/include/natron/Windows.pri.
+    if(NOT MSVC)
+        add_link_options(-Wl,--build-id)
+    endif()
+
     enable_language(RC)
     add_compile_definitions(WINDOWS WIN32 _UNICODE UNICODE NOMINMAX QHTTP_SERVER_STATIC)
     add_compile_definitions(COMPILED_FROM_DSP XML_STATIC) # for expat
@@ -160,6 +210,14 @@ enable_testing()
 
 add_subdirectory(libs)
 
+# Must precede Engine: AppManagerPrivate.h includes breakpad's exception_handler.h
+# when NATRON_USE_BREAKPAD is defined, and BreakpadClient carries that define.
+if(NATRON_BREAKPAD)
+    add_subdirectory(BreakpadClient)
+    add_subdirectory(CrashReporter)
+    add_subdirectory(CrashReporterCLI)
+endif()
+
 add_subdirectory(HostSupport)
 
 add_subdirectory(Engine)
@@ -171,6 +229,7 @@ add_subdirectory(Renderer)
 add_subdirectory(Gui)
 
 if(NATRON_BUILD_TESTS)
+    find_package(GTest CONFIG REQUIRED)
     add_subdirectory(Tests)
 endif()
 

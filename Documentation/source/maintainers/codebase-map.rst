@@ -54,12 +54,12 @@ Top-level directories
     OpenFX headers in ``libs/OpenFX``.
 
 ``libs/``
-    Bundled third-party libraries built from source: ``OpenFX`` and
+    Third-party code still built from source: ``OpenFX`` and
     ``OpenFX_extensions`` (the plug-in API), ``ceres``/``openMVG``/``libmv``
-    (the tracker's solver and matcher), ``Eigen3`` (linear algebra headers),
-    ``hoedown`` (Markdown), ``libtess`` (tessellation), ``gflags``/``glog``,
-    ``qhttpserver`` (internal docs server), ``SequenceParsing`` and
-    ``google-breakpad`` (crash reporting).
+    (the tracker's solver and matcher), ``hoedown`` (Markdown), ``libtess``
+    (tessellation), ``qhttpserver`` (internal docs server),
+    ``SequenceParsing`` and ``google-breakpad`` (crash reporting). Eigen, glog and gtest come from vcpkg instead — see
+    :ref:`maint-building`.
 
 ``Tests/``
     Google Test / Google Mock unit tests.
