@@ -213,9 +213,14 @@ Ordered so that each step is independently reviewable and shrinks the next:
    for the largest batch rather than part of it.
 3. **The engine-configuration half of ``Settings``**, injected through the
    engine context. The client half can keep a global accessor.
-4. **``getTopLevelInstance``** — 17 uses, and the assumption that there is one
-   current engine stated in the open. Small, and the most direct progress
-   towards the exit criterion.
+4. **``getTopLevelInstance``** — 17 uses, but reading them shows only about
+   six are what the name suggests. Eleven are message routing: the eight
+   ``Dialogs`` functions and the script-editor output ask "is there a user
+   interface to show this in", not "which engine am I". Those are already
+   headless-safe, since each falls back to the console. The remaining handful
+   -- the OCIO warning in ``Settings``, the Python entry point, and
+   ``DocumentationManager`` creating nodes in a project -- are the ones that
+   genuinely assume a single current engine.
 5. **The cache** — decide whether it is shared or per-engine, then follow.
 6. **Process-global services** — run mode, diagnostics, plug-in registry, GL
    environment. Give them clear ownership at leisure; they do not block a
