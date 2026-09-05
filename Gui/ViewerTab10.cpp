@@ -46,6 +46,7 @@ GCC_DIAG_UNUSED_PRIVATE_FIELD_ON
 #include "Engine/ViewerInstance.h"
 
 #include "Gui/ActionShortcuts.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiMacros.h"
 #include "Gui/Button.h"
 #include "Gui/ChannelsComboBox.h"
@@ -148,13 +149,13 @@ ViewerTab::setPlaybackMode(PlaybackModeEnum mode)
 
     switch (mode) {
     case ePlaybackModeLoop:
-        appPTR->getIcon(NATRON_PIXMAP_PLAYER_LOOP_MODE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_PLAYER_LOOP_MODE, &pix);
         break;
     case ePlaybackModeBounce:
-        appPTR->getIcon(NATRON_PIXMAP_PLAYER_BOUNCE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_PLAYER_BOUNCE, &pix);
         break;
     case ePlaybackModeOnce:
-        appPTR->getIcon(NATRON_PIXMAP_PLAYER_PLAY_ONCE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_PLAYER_PLAY_ONCE, &pix);
         break;
     default:
         break;
@@ -184,13 +185,13 @@ ViewerTab::togglePlaybackMode()
     QPixmap pix;
     switch (mode) {
     case ePlaybackModeLoop:
-        appPTR->getIcon(NATRON_PIXMAP_PLAYER_LOOP_MODE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_PLAYER_LOOP_MODE, &pix);
         break;
     case ePlaybackModeBounce:
-        appPTR->getIcon(NATRON_PIXMAP_PLAYER_BOUNCE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_PLAYER_BOUNCE, &pix);
         break;
     case ePlaybackModeOnce:
-        appPTR->getIcon(NATRON_PIXMAP_PLAYER_PLAY_ONCE, &pix);
+        NatronIcons::get(NATRON_PIXMAP_PLAYER_PLAY_ONCE, &pix);
         break;
     default:
         break;

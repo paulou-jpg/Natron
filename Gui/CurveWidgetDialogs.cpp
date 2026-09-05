@@ -51,6 +51,7 @@ GCC_DIAG_UNUSED_PRIVATE_FIELD_ON
 #include "Gui/CurveWidget.h" // CurveWidget
 #include "Gui/SequenceFileDialog.h" // SequenceFileDialog
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/Label.h" // Label
 #include "Gui/Gui.h" // Gui
 #include "Gui/GuiAppInstance.h"
@@ -138,7 +139,7 @@ ImportExportCurveDialog::ImportExportCurveDialog(bool isExportDialog,
     _fileLayout->addWidget(_fileLineEdit);
     _fileBrowseButton = new Button(_fileContainer);
     QPixmap pix;
-    appPTR->getIcon(NATRON_PIXMAP_OPEN_FILE, &pix);
+    NatronIcons::get(NATRON_PIXMAP_OPEN_FILE, &pix);
     _fileBrowseButton->setIcon( QIcon(pix) );
     QObject::connect( _fileBrowseButton, SIGNAL(clicked()), this, SLOT(open_file()) );
     _fileLayout->addWidget(_fileBrowseButton);

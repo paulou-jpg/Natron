@@ -35,6 +35,7 @@
 #include "Engine/RotoLayer.h"
 
 #include "Gui/Edge.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/Gui.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h" // appPTR
@@ -95,7 +96,7 @@ NodeGraphPrivate::NodeGraphPrivate(NodeGraph* p,
     , isDoingPreviewRender(false)
     , autoScrollTimer()
 {
-    appPTR->getIcon(NATRON_PIXMAP_LOCKED, &unlockIcon);
+    NatronIcons::get(NATRON_PIXMAP_LOCKED, &unlockIcon);
 }
 
 QPoint

@@ -52,6 +52,7 @@
 #include "Gui/Gui.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/InfoViewerWidget.h"
 #include "Gui/Label.h"
@@ -223,8 +224,8 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
     const QSize buttonSize( TO_DPIX(NATRON_MEDIUM_BUTTON_SIZE), TO_DPIY(NATRON_MEDIUM_BUTTON_SIZE) );
     const QSize buttonIconSize( TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE), TO_DPIY(NATRON_MEDIUM_BUTTON_ICON_SIZE) );
     QPixmap lockEnabled, lockDisabled;
-    appPTR->getIcon(NATRON_PIXMAP_LOCKED, pixmapIconSize, &lockEnabled);
-    appPTR->getIcon(NATRON_PIXMAP_UNLOCKED, pixmapIconSize, &lockDisabled);
+    NatronIcons::get(NATRON_PIXMAP_LOCKED, pixmapIconSize, &lockEnabled);
+    NatronIcons::get(NATRON_PIXMAP_UNLOCKED, pixmapIconSize, &lockDisabled);
 
     QIcon lockIcon;
     lockIcon.addPixmap(lockEnabled, QIcon::Normal, QIcon::On);
@@ -367,7 +368,7 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
     _imp->firstRowLayout->addWidget(_imp->firstInputImage);
 
     QPixmap pixMerge;
-    appPTR->getIcon(NATRON_PIXMAP_MERGE_GROUPING, pixmapIconSize, &pixMerge);
+    NatronIcons::get(NATRON_PIXMAP_MERGE_GROUPING, pixmapIconSize, &pixMerge);
     _imp->compositingOperatorLabel = new Label(QString(), _imp->firstSettingsRow);
     _imp->compositingOperatorLabel->setPixmap(pixMerge);
     _imp->compositingOperatorLabel->setToolTip( NATRON_NAMESPACE::convertFromPlainText(tr("Operation applied between viewer inputs A and B. a and b are the alpha components of each input. d is the wipe dissolve factor, controlled by the arc handle."), NATRON_NAMESPACE::WhiteSpaceNormal) );
@@ -416,8 +417,8 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
     _imp->mainLayout->addWidget(_imp->secondSettingsRow);
 
     QPixmap gainEnabled, gainDisabled;
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_GAIN_ENABLED, pixmapIconSize, &gainEnabled);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_GAIN_DISABLED, pixmapIconSize, &gainDisabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_GAIN_ENABLED, pixmapIconSize, &gainEnabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_GAIN_DISABLED, pixmapIconSize, &gainDisabled);
     QIcon gainIc;
     gainIc.addPixmap(gainEnabled, QIcon::Normal, QIcon::On);
     gainIc.addPixmap(gainDisabled, QIcon::Normal, QIcon::Off);
@@ -449,8 +450,8 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
                                      "Automatically adjusts the gain and the offset applied "
                                      "to the colors of the visible image portion on the viewer.") + QString::fromUtf8("</p>") );
     QPixmap acOn, acOff;
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_AUTOCONTRAST_DISABLED, pixmapIconSize, &acOff);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_AUTOCONTRAST_ENABLED, pixmapIconSize, &acOn);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_AUTOCONTRAST_DISABLED, pixmapIconSize, &acOff);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_AUTOCONTRAST_ENABLED, pixmapIconSize, &acOn);
     QIcon acIc;
     acIc.addPixmap(acOn, QIcon::Normal, QIcon::On);
     acIc.addPixmap(acOff, QIcon::Normal, QIcon::Off);
@@ -464,8 +465,8 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
     _imp->secondRowLayout->addWidget(_imp->autoContrast);
 
     QPixmap gammaEnabled, gammaDisabled;
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_GAMMA_ENABLED, &gammaEnabled);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_GAMMA_DISABLED, &gammaDisabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_GAMMA_ENABLED, &gammaEnabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_GAMMA_DISABLED, &gammaDisabled);
     QIcon gammaIc;
     gammaIc.addPixmap(gammaEnabled, QIcon::Normal, QIcon::On);
     gammaIc.addPixmap(gammaDisabled, QIcon::Normal, QIcon::Off);
@@ -508,8 +509,8 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
     _imp->viewerColorSpace->setCurrentIndex(1);
 
     QPixmap pixCheckerboardEnabled, pixCheckerboardDisabld;
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_CHECKERBOARD_ENABLED, pixmapIconSize, &pixCheckerboardEnabled);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_CHECKERBOARD_DISABLED, pixmapIconSize, &pixCheckerboardDisabld);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_CHECKERBOARD_ENABLED, pixmapIconSize, &pixCheckerboardEnabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_CHECKERBOARD_DISABLED, pixmapIconSize, &pixCheckerboardDisabld);
     QIcon icCk;
     icCk.addPixmap(pixCheckerboardEnabled, QIcon::Normal, QIcon::On);
     icCk.addPixmap(pixCheckerboardDisabld, QIcon::Normal, QIcon::Off);
@@ -535,7 +536,7 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
     _imp->secondRowLayout->addStretch();
 
     QPixmap colorPickerpix;
-    appPTR->getIcon(NATRON_PIXMAP_COLOR_PICKER, pixmapIconSize, &colorPickerpix);
+    NatronIcons::get(NATRON_PIXMAP_COLOR_PICKER, pixmapIconSize, &colorPickerpix);
 
     _imp->pickerButton = new Button(QIcon(colorPickerpix), QString(), _imp->secondSettingsRow);
     _imp->pickerButton->setFocusPolicy(Qt::NoFocus);
@@ -748,8 +749,8 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
 
     TimeLinePtr timeline = getGui()->getApp()->getTimeLine();
     QPixmap tripleSyncUnlockPix, tripleSyncLockedPix;
-    appPTR->getIcon(NATRON_PIXMAP_UNLOCKED, pixmapIconSize, &tripleSyncUnlockPix);
-    appPTR->getIcon(NATRON_PIXMAP_LOCKED, pixmapIconSize, &tripleSyncLockedPix);
+    NatronIcons::get(NATRON_PIXMAP_UNLOCKED, pixmapIconSize, &tripleSyncUnlockPix);
+    NatronIcons::get(NATRON_PIXMAP_LOCKED, pixmapIconSize, &tripleSyncLockedPix);
 
     QIcon tripleSyncIc;
     tripleSyncIc.addPixmap(tripleSyncUnlockPix, QIcon::Normal, QIcon::Off);
@@ -802,8 +803,8 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
     _imp->timeFormat->setFixedSize(timeFormatSize);
 
     QPixmap pixFreezeEnabled, pixFreezeDisabled;
-    appPTR->getIcon(NATRON_PIXMAP_FREEZE_ENABLED, &pixFreezeEnabled);
-    appPTR->getIcon(NATRON_PIXMAP_FREEZE_DISABLED, &pixFreezeDisabled);
+    NatronIcons::get(NATRON_PIXMAP_FREEZE_ENABLED, &pixFreezeEnabled);
+    NatronIcons::get(NATRON_PIXMAP_FREEZE_DISABLED, &pixFreezeDisabled);
     QIcon icFreeze;
     icFreeze.addPixmap(pixFreezeEnabled, QIcon::Normal, QIcon::On);
     icFreeze.addPixmap(pixFreezeDisabled, QIcon::Normal, QIcon::Off);
@@ -846,33 +847,33 @@ ViewerTab::ViewerTab(const std::list<NodeGuiPtr> & existingNodesContext,
     QPixmap pixFullFrameOn;
     QPixmap pixFullFrameOff;
 
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_FIRST_FRAME, &pixFirst);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PREVIOUS_KEY, &pixPrevKF);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_REWIND_DISABLED, &pixRewindDisabled);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PREVIOUS, &pixBack1);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_STOP_ENABLED, &pixStop);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_NEXT, &pixForward1);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PLAY_DISABLED, &pixPlayDisabled);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_NEXT_KEY, &pixNextKF);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_LAST_FRAME, &pixLast);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PREVIOUS_INCR, &pixPrevIncr);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_NEXT_INCR, &pixNextIncr);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_REFRESH, &pixRefresh);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_REFRESH_ACTIVE, &pixRefreshActive);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_CENTER, &pixCenterViewer);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_LOOP_MODE, &pixLoopMode);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_CLIP_TO_PROJECT_ENABLED, &pixClipToProjectEnabled);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_CLIP_TO_PROJECT_DISABLED, &pixClipToProjectDisabled);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_ROI_ENABLED, &pixViewerRoIEnabled);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_ROI_DISABLED, &pixViewerRoIDisabled);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_RENDER_SCALE, &pixViewerRs);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_RENDER_SCALE_CHECKED, &pixViewerRsChecked);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_TIMELINE_IN, &pixInpoint);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_TIMELINE_OUT, &pixOutPoint);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PAUSE_DISABLED, &pixPauseDisabled);
-    appPTR->getIcon(NATRON_PIXMAP_PLAYER_PAUSE_ENABLED, &pixPauseEnabled);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_FULL_FRAME_OFF, &pixFullFrameOff);
-    appPTR->getIcon(NATRON_PIXMAP_VIEWER_FULL_FRAME_ON, &pixFullFrameOn);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_FIRST_FRAME, &pixFirst);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PREVIOUS_KEY, &pixPrevKF);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_REWIND_DISABLED, &pixRewindDisabled);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PREVIOUS, &pixBack1);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_STOP_ENABLED, &pixStop);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_NEXT, &pixForward1);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PLAY_DISABLED, &pixPlayDisabled);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_NEXT_KEY, &pixNextKF);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_LAST_FRAME, &pixLast);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PREVIOUS_INCR, &pixPrevIncr);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_NEXT_INCR, &pixNextIncr);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_REFRESH, &pixRefresh);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_REFRESH_ACTIVE, &pixRefreshActive);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_CENTER, &pixCenterViewer);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_LOOP_MODE, &pixLoopMode);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_CLIP_TO_PROJECT_ENABLED, &pixClipToProjectEnabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_CLIP_TO_PROJECT_DISABLED, &pixClipToProjectDisabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_ROI_ENABLED, &pixViewerRoIEnabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_ROI_DISABLED, &pixViewerRoIDisabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_RENDER_SCALE, &pixViewerRs);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_RENDER_SCALE_CHECKED, &pixViewerRsChecked);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_TIMELINE_IN, &pixInpoint);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_TIMELINE_OUT, &pixOutPoint);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PAUSE_DISABLED, &pixPauseDisabled);
+    NatronIcons::get(NATRON_PIXMAP_PLAYER_PAUSE_ENABLED, &pixPauseEnabled);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_FULL_FRAME_OFF, &pixFullFrameOff);
+    NatronIcons::get(NATRON_PIXMAP_VIEWER_FULL_FRAME_ON, &pixFullFrameOn);
 
     _imp->firstFrame_Button->setIcon( QIcon(pixFirst) );
     _imp->previousKeyFrame_Button->setIcon( QIcon(pixPrevKF) );

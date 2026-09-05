@@ -96,6 +96,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/ComboBox.h"
 #include "Gui/DialogButtonBox.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/Gui.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/NodeGui.h"
@@ -387,8 +388,8 @@ SequenceFileDialog::SequenceFileDialog( QWidget* parent, // necessary to transmi
 
     if ( (mode == eFileDialogModeOpen) && isSequenceDialog ) {
         QPixmap pixPreviewButtonEnabled, pixPreviewButtonDisabled;
-        appPTR->getIcon(NATRON_PIXMAP_PLAYER_PLAY_ENABLED, &pixPreviewButtonEnabled);
-        appPTR->getIcon(NATRON_PIXMAP_PLAYER_PLAY_DISABLED, &pixPreviewButtonDisabled);
+        NatronIcons::get(NATRON_PIXMAP_PLAYER_PLAY_ENABLED, &pixPreviewButtonEnabled);
+        NatronIcons::get(NATRON_PIXMAP_PLAYER_PLAY_DISABLED, &pixPreviewButtonDisabled);
         QIcon icPreview;
         icPreview.addPixmap(pixPreviewButtonEnabled, QIcon::Normal, QIcon::On);
         icPreview.addPixmap(pixPreviewButtonDisabled, QIcon::Normal, QIcon::Off);
@@ -447,7 +448,7 @@ SequenceFileDialog::SequenceFileDialog( QWidget* parent, // necessary to transmi
         _filterLayout->addWidget(_filterLineEdit);
         QSize buttonSize( 15, _filterLineEdit->sizeHint().height() );
         QPixmap pixDropDown;
-        appPTR->getIcon(NATRON_PIXMAP_COMBOBOX, &pixDropDown);
+        NatronIcons::get(NATRON_PIXMAP_COMBOBOX, &pixDropDown);
         _filterDropDown = new Button(QIcon(pixDropDown), QString(), _filterWidget);
         _filterDropDown->setFixedSize(buttonSize);
         _filterLayout->addWidget(_filterDropDown);

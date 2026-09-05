@@ -64,6 +64,7 @@ GCC_DIAG_UNUSED_PRIVATE_FIELD_ON
 #include "Gui/FloatingWidget.h"
 #include "Gui/Gui.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/GuiMacros.h" // triggerButtonIsRight...
 #include "Gui/KnobGui.h"
@@ -219,7 +220,7 @@ DockablePanel::DockablePanel(Gui* gui,
 
 
             QPixmap pixCenter;
-            appPTR->getIcon(NATRON_PIXMAP_VIEWER_CENTER, iconSize, &pixCenter);
+            NatronIcons::get(NATRON_PIXMAP_VIEWER_CENTER, iconSize, &pixCenter);
             _imp->_centerNodeButton = new Button( QIcon(pixCenter), QString(), getHeaderWidget() );
             _imp->_centerNodeButton->setFixedSize(mediumBSize);
             _imp->_centerNodeButton->setIconSize(mediumIconSize);
@@ -231,7 +232,7 @@ DockablePanel::DockablePanel(Gui* gui,
             NodeGroup* isGroup = dynamic_cast<NodeGroup*>(isEffect);
             if ( isGroup && (isGroup->getPluginID() == PLUGINID_NATRON_GROUP) ) {
                 QPixmap enterPix;
-                appPTR->getIcon(NATRON_PIXMAP_ENTER_GROUP, iconSize, &enterPix);
+                NatronIcons::get(NATRON_PIXMAP_ENTER_GROUP, iconSize, &enterPix);
                 _imp->_enterInGroupButton = new Button(QIcon(enterPix), QString(), _imp->_headerWidget);
                 QObject::connect( _imp->_enterInGroupButton, SIGNAL(clicked(bool)), this, SLOT(onEnterInGroupClicked()) );
                 QObject::connect( isGroup, SIGNAL(graphEditableChanged(bool)), this, SLOT(onSubGraphEditionChanged(bool)) );
@@ -242,7 +243,7 @@ DockablePanel::DockablePanel(Gui* gui,
             }
 
             QPixmap pixHelp;
-            appPTR->getIcon(NATRON_PIXMAP_HELP_WIDGET, iconSize, &pixHelp);
+            NatronIcons::get(NATRON_PIXMAP_HELP_WIDGET, iconSize, &pixHelp);
             _imp->_helpButton = new Button(QIcon(pixHelp), QString(), _imp->_headerWidget);
 
             _imp->_helpButton->setToolTip( helpString() );
@@ -252,8 +253,8 @@ DockablePanel::DockablePanel(Gui* gui,
 
             QObject::connect( _imp->_helpButton, SIGNAL(clicked()), this, SLOT(showHelp()) );
             QPixmap pixHide, pixShow;
-            appPTR->getIcon(NATRON_PIXMAP_UNHIDE_UNMODIFIED, iconSize, &pixShow);
-            appPTR->getIcon(NATRON_PIXMAP_HIDE_UNMODIFIED, iconSize, &pixHide);
+            NatronIcons::get(NATRON_PIXMAP_UNHIDE_UNMODIFIED, iconSize, &pixShow);
+            NatronIcons::get(NATRON_PIXMAP_HIDE_UNMODIFIED, iconSize, &pixHide);
             QIcon icHideShow;
             icHideShow.addPixmap(pixShow, QIcon::Normal, QIcon::Off);
             icHideShow.addPixmap(pixHide, QIcon::Normal, QIcon::On);
@@ -267,13 +268,13 @@ DockablePanel::DockablePanel(Gui* gui,
             QObject::connect( _imp->_hideUnmodifiedButton, SIGNAL(clicked(bool)), this, SLOT(onHideUnmodifiedButtonClicked(bool)) );
         }
         QPixmap pixM;
-        appPTR->getIcon(NATRON_PIXMAP_MINIMIZE_WIDGET, iconSize, &pixM);
+        NatronIcons::get(NATRON_PIXMAP_MINIMIZE_WIDGET, iconSize, &pixM);
 
         QPixmap pixC;
-        appPTR->getIcon(NATRON_PIXMAP_CLOSE_WIDGET, iconSize, &pixC);
+        NatronIcons::get(NATRON_PIXMAP_CLOSE_WIDGET, iconSize, &pixC);
 
         QPixmap pixF;
-        appPTR->getIcon(NATRON_PIXMAP_MAXIMIZE_WIDGET, iconSize, &pixF);
+        NatronIcons::get(NATRON_PIXMAP_MAXIMIZE_WIDGET, iconSize, &pixF);
 
         _imp->_minimize = new Button(QIcon(pixM), QString(), _imp->_headerWidget);
         _imp->_minimize->setFixedSize(mediumBSize);
@@ -326,7 +327,7 @@ DockablePanel::DockablePanel(Gui* gui,
 
             if ( node && node->hasOverlay() ) {
                 QPixmap pixOverlay;
-                appPTR->getIcon(NATRON_PIXMAP_OVERLAY, iconSize, &pixOverlay);
+                NatronIcons::get(NATRON_PIXMAP_OVERLAY, iconSize, &pixOverlay);
                 _imp->_overlayColor.setRgbF(1., 1., 1.);
                 _imp->_overlayButton = new OverlayColorButton(this, QIcon(pixOverlay), _imp->_headerWidget);
                 _imp->_overlayButton->setFixedSize(mediumBSize);
@@ -339,9 +340,9 @@ DockablePanel::DockablePanel(Gui* gui,
             }
         }
         QPixmap pixUndo;
-        appPTR->getIcon(NATRON_PIXMAP_UNDO, iconSize, &pixUndo);
+        NatronIcons::get(NATRON_PIXMAP_UNDO, iconSize, &pixUndo);
         QPixmap pixUndo_gray;
-        appPTR->getIcon(NATRON_PIXMAP_UNDO_GRAYSCALE, iconSize, &pixUndo_gray);
+        NatronIcons::get(NATRON_PIXMAP_UNDO_GRAYSCALE, iconSize, &pixUndo_gray);
         QIcon icUndo;
         icUndo.addPixmap(pixUndo, QIcon::Normal);
         icUndo.addPixmap(pixUndo_gray, QIcon::Disabled);
@@ -352,9 +353,9 @@ DockablePanel::DockablePanel(Gui* gui,
         _imp->_undoButton->setEnabled(false);
         _imp->_undoButton->setFocusPolicy(Qt::NoFocus);
         QPixmap pixRedo;
-        appPTR->getIcon(NATRON_PIXMAP_REDO, iconSize, &pixRedo);
+        NatronIcons::get(NATRON_PIXMAP_REDO, iconSize, &pixRedo);
         QPixmap pixRedo_gray;
-        appPTR->getIcon(NATRON_PIXMAP_REDO_GRAYSCALE, iconSize, &pixRedo_gray);
+        NatronIcons::get(NATRON_PIXMAP_REDO_GRAYSCALE, iconSize, &pixRedo_gray);
         QIcon icRedo;
         icRedo.addPixmap(pixRedo, QIcon::Normal);
         icRedo.addPixmap(pixRedo_gray, QIcon::Disabled);
@@ -366,7 +367,7 @@ DockablePanel::DockablePanel(Gui* gui,
         _imp->_redoButton->setFocusPolicy(Qt::NoFocus);
 
         QPixmap pixRestore;
-        appPTR->getIcon(NATRON_PIXMAP_RESTORE_DEFAULTS_ENABLED, iconSize, &pixRestore);
+        NatronIcons::get(NATRON_PIXMAP_RESTORE_DEFAULTS_ENABLED, iconSize, &pixRestore);
         QIcon icRestore;
         icRestore.addPixmap(pixRestore);
         _imp->_restoreDefaultsButton = new Button(icRestore, QString(), _imp->_headerWidget);
@@ -1408,7 +1409,7 @@ DockablePanel::onOverlayColorDialogColorChanged(const QColor& color)
         // Replace the circle portion from the icon with the color picked by the user
         int iconSize = TO_DPIX(NATRON_MEDIUM_BUTTON_ICON_SIZE);
         QPixmap pixOverlay;
-        appPTR->getIcon(NATRON_PIXMAP_OVERLAY, iconSize, &pixOverlay);
+        NatronIcons::get(NATRON_PIXMAP_OVERLAY, iconSize, &pixOverlay);
 
         QImage img = pixOverlay.toImage();
         if (!img.isNull()) {
@@ -1511,7 +1512,7 @@ DockablePanel::onOverlayButtonClicked()
                 _imp->_hasOverlayColor = false;
             }
             QPixmap pixOverlay;
-            appPTR->getIcon(NATRON_PIXMAP_OVERLAY, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixOverlay);
+            NatronIcons::get(NATRON_PIXMAP_OVERLAY, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixOverlay);
             _imp->_overlayButton->setIcon( QIcon(pixOverlay) );
         }
     }
@@ -1566,7 +1567,7 @@ DockablePanel::resetHostOverlayColor()
         _imp->_hasOverlayColor = false;
     }
     QPixmap pixOverlay;
-    appPTR->getIcon(NATRON_PIXMAP_OVERLAY, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixOverlay);
+    NatronIcons::get(NATRON_PIXMAP_OVERLAY, NATRON_MEDIUM_BUTTON_ICON_SIZE, &pixOverlay);
     _imp->_overlayButton->setIcon( QIcon(pixOverlay) );
 
     Gui* gui = getGui();

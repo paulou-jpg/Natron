@@ -93,6 +93,7 @@ GCC_DIAG_UNUSED_PRIVATE_FIELD_ON
 #include "Gui/Gui.h"
 #include "Gui/GuiAppInstance.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/Histogram.h"
 #include "Gui/Menu.h"
 #include "Gui/MessageBox.h"
@@ -332,7 +333,7 @@ GuiPrivate::createPropertiesBinGui()
     propertiesAreaButtonsLayout->setSpacing(5);
     QPixmap closePanelPix;
     int smallSizeIcon = TO_DPIX(NATRON_SMALL_BUTTON_ICON_SIZE);
-    appPTR->getIcon(NATRON_PIXMAP_CLOSE_PANEL, smallSizeIcon, &closePanelPix);
+    NatronIcons::get(NATRON_PIXMAP_CLOSE_PANEL, smallSizeIcon, &closePanelPix);
     _clearAllPanelsButton = new Button(QIcon(closePanelPix), QString(), propertiesAreaButtonsContainer);
 
     const QSize smallButtonSize( TO_DPIX(NATRON_SMALL_BUTTON_SIZE), TO_DPIY(NATRON_SMALL_BUTTON_SIZE) );
@@ -345,8 +346,8 @@ GuiPrivate::createPropertiesBinGui()
     _clearAllPanelsButton->setFocusPolicy(Qt::NoFocus);
     QObject::connect( _clearAllPanelsButton, SIGNAL(clicked(bool)), _gui, SLOT(clearAllVisiblePanels()) );
     QPixmap minimizePix, maximizePix;
-    appPTR->getIcon(NATRON_PIXMAP_MINIMIZE_WIDGET, smallSizeIcon, &minimizePix);
-    appPTR->getIcon(NATRON_PIXMAP_MAXIMIZE_WIDGET, smallSizeIcon, &maximizePix);
+    NatronIcons::get(NATRON_PIXMAP_MINIMIZE_WIDGET, smallSizeIcon, &minimizePix);
+    NatronIcons::get(NATRON_PIXMAP_MAXIMIZE_WIDGET, smallSizeIcon, &maximizePix);
     QIcon mIc;
     mIc.addPixmap(minimizePix, QIcon::Normal, QIcon::On);
     mIc.addPixmap(maximizePix, QIcon::Normal, QIcon::Off);

@@ -32,6 +32,9 @@ introduced where needed.
     rendering
     openfx-host
     python-bindings
+    platform-python-api
+    platform-project-format
+    platform-singleton-audit
     subsystems
     contributing
     qt6-migration

@@ -68,6 +68,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/GroupBoxLabel.h"
 #include "Gui/Gui.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/GuiMacros.h"
 #include "Gui/KnobUndoCommand.h"
@@ -148,7 +149,7 @@ ColorPickerLabel::setColor(const QColor & color)
     if (_pickingEnabled && _knob) {
         //draw the picker on top of the label
         QPixmap pickerIcon;
-        appPTR->getIcon(NATRON_PIXMAP_COLOR_PICKER, &pickerIcon);
+        NatronIcons::get(NATRON_PIXMAP_COLOR_PICKER, &pickerIcon);
         QImage pickerImg = pickerIcon.toImage();
         QImage img(pickerIcon.width(), pickerIcon.height(), QImage::Format_ARGB32);
         img.fill( color.rgb() );
@@ -305,7 +306,7 @@ KnobGuiColor::addExtraWidgets(QHBoxLayout* containerLayout)
 
     // add color selector popup
     QPixmap colorSelectorPix;
-    appPTR->getIcon(NATRON_PIXMAP_COLORWHEEL, NATRON_MEDIUM_BUTTON_ICON_SIZE, &colorSelectorPix);
+    NatronIcons::get(NATRON_PIXMAP_COLORWHEEL, NATRON_MEDIUM_BUTTON_ICON_SIZE, &colorSelectorPix);
 
     _colorSelectorButton = new QToolButton( containerLayout->widget() );
     _colorSelectorButton->setObjectName( QString::fromUtf8("ColorSelectorButton") );

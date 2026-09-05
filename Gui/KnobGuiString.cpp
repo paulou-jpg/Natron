@@ -67,6 +67,7 @@ CLANG_DIAG_ON(uninitialized)
 #include "Gui/GroupBoxLabel.h"
 #include "Gui/Gui.h"
 #include "Gui/GuiApplicationManager.h"
+#include "Gui/NatronIcons.h"
 #include "Gui/GuiDefines.h"
 #include "Gui/GuiMacros.h"
 #include "Gui/KnobUndoCommand.h"
@@ -429,10 +430,10 @@ KnobGuiString::createWidget(QHBoxLayout* layout)
             _richTextOptionsLayout->addWidget(_fontSizeSpinBox);
 
             QPixmap pixBoldChecked, pixBoldUnchecked, pixItalicChecked, pixItalicUnchecked;
-            appPTR->getIcon(NATRON_PIXMAP_BOLD_CHECKED, &pixBoldChecked);
-            appPTR->getIcon(NATRON_PIXMAP_BOLD_UNCHECKED, &pixBoldUnchecked);
-            appPTR->getIcon(NATRON_PIXMAP_ITALIC_CHECKED, &pixItalicChecked);
-            appPTR->getIcon(NATRON_PIXMAP_ITALIC_UNCHECKED, &pixItalicUnchecked);
+            NatronIcons::get(NATRON_PIXMAP_BOLD_CHECKED, &pixBoldChecked);
+            NatronIcons::get(NATRON_PIXMAP_BOLD_UNCHECKED, &pixBoldUnchecked);
+            NatronIcons::get(NATRON_PIXMAP_ITALIC_CHECKED, &pixItalicChecked);
+            NatronIcons::get(NATRON_PIXMAP_ITALIC_UNCHECKED, &pixItalicUnchecked);
             QIcon boldIcon;
             boldIcon.addPixmap(pixBoldChecked, QIcon::Normal, QIcon::On);
             boldIcon.addPixmap(pixBoldUnchecked, QIcon::Normal, QIcon::Off);
