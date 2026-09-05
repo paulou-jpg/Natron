@@ -140,13 +140,50 @@ The shape mirrors what the current archive already stores — a node collection,
 project knobs, additional formats and a timeline position — so this is a change
 of *encoding and authority*, not of model.
 
+Decision: the container format
+------------------------------
+
+**JSON, with a JSON Schema alongside it.** Decided; the reasoning is recorded
+here because the choice is hard to reverse once tooling exists.
+
+The candidates were not equivalent, and two ruled themselves out on grounds
+that have nothing to do with taste:
+
+**TOML is a structural mismatch.** The document is recursive -- groups contain
+graphs which contain groups -- and TOML is built for flat configuration. Nested
+arrays-of-tables express that badly enough to hurt every reader written against
+it.
+
+**YAML's ambiguity undermines R1.** "Any language can read it" is weaker for
+YAML than it looks: implementations genuinely disagree, and the specification
+has traps that corrupt data silently rather than failing loudly. An unquoted
+``no`` parses as boolean false, and a version-like ``1.10`` parses as the float
+1.1. Both are plausible values in a comp.
+
+JSON wins on the requirement that matters most here. Parsers are everywhere and
+agree with each other, schema tooling is mature (R2), and preserving unknown
+keys across a round-trip is trivial (R6). The cost is that JSON has no comments;
+that is acceptable, because comps are written by tools rather than typed by
+hand.
+
+.. warning::
+
+   **Float fidelity must be specified, not left to the parser.** Animation
+   curves, transform matrices and colour values are all floating point, and many
+   JSON implementations round-trip through a double without care, drifting
+   values slightly on every save. The schema fixes the representation:
+   floats are written with enough significant digits to round-trip exactly
+   (17 for IEEE-754 doubles), and readers must not reformat values they did not
+   change.
+
+Encoding is deliberately kept separate from the data model, so that a binary
+encoding can be added later for R7 without redesigning the document. `USD
+<https://openusd.org>`_ is the precedent worth following: one data model, a text
+encoding for diffing and review, and a binary encoding for scale. Do not build
+the binary encoding now -- but do not specify anything that would prevent it.
+
 Decisions still open
 --------------------
-
-- **Container format.** JSON is universal but has no comments and poor numeric
-  fidelity; TOML is diff-friendly but awkward for deep nesting; YAML is
-  ergonomic but has a large and surprising specification. This is the first
-  decision to make and the hardest to reverse.
 - **Node identity.** Stable ids are needed for R4 and R6. Are they UUIDs
   (stable but unreadable in a diff) or scoped names (readable but they change
   when a node is renamed)?
