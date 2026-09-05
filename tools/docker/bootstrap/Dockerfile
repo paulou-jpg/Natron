@@ -1,10 +1,14 @@
 # Baseline bootstrap container for Natron.
 #
-# Ubuntu 22.04 is pinned deliberately. 24.04 dropped the Qt5 PySide2/Shiboken2
-# packages, and the Shiboken generator is not published to PyPI at any version
-# (Qt ships it only through their own index), so 22.04 is the last distro that
-# carries the binding toolchain Natron 2.6 needs. Get something building before
-# refactoring what it builds with.
+# Ubuntu 22.04 is pinned as a known-good baseline, matching what CI used before
+# the CMake migration. 24.04 also carries the Qt5 binding toolchain
+# (libshiboken2-dev, libpyside2-dev, qtbase5-dev at 5.15.13), so moving forward
+# is possible; it just has not been exercised.
+#
+# What genuinely is unavailable: the Shiboken generator is not published to PyPI
+# at any version, and the PySide wheels ship runtime modules only -- no CMake
+# config, no headers, no generator. So a distro or MacPorts/Homebrew package is
+# required either way; pip cannot supply this toolchain.
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
